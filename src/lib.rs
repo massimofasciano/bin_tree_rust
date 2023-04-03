@@ -100,6 +100,15 @@ pub struct TreeIntoIter<T> {
     stack: Vec<Box<Tree<T>>>
 }
 
+impl<T> IntoIterator for Tree<T> {
+    type IntoIter = TreeIntoIter<T>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TreeIntoIter { stack: vec![Box::new(self)] }
+    }
+}
+
 impl<T> Iterator for TreeIntoIter<T> {
     type Item = T;
 
@@ -126,11 +135,39 @@ impl<T> Iterator for TreeIntoIter<T> {
     }
 }
 
-impl<T> IntoIterator for Tree<T> {
-    type IntoIter = TreeIntoIter<T>;
-    type Item = T;
+///////////////////////////////////////////////////////////////////////////////////////////////
 
-    fn into_iter(self) -> Self::IntoIter {
-        TreeIntoIter { stack: vec![Box::new(self)] }
+enum TreeIterStackItem<'a,T> {
+    Item(&'a T),
+    Tree(&'a Tree<T>),
+}
+
+pub struct TreeIter<'a, T> {
+    stack: Vec<TreeIterStackItem<'a,T>>
+}
+
+impl<'a, T> Tree<T> {
+    pub fn iter(&'a self) -> TreeIter<'a, T> {
+        TreeIter { stack: vec![TreeIterStackItem::Tree(self)] }
     }
 }
+
+impl<'a,T> Iterator for TreeIter<'a,T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let pop = self.stack.pop();
+        match pop {
+            None => None,
+            Some(TreeIterStackItem::Item(item)) => Some(item),
+            Some(TreeIterStackItem::Tree(Tree::Empty)) => self.next(),
+            Some(TreeIterStackItem::Tree(Tree::Branch(item, left, right))) => {
+                self.stack.push(TreeIterStackItem::Tree(&*right));
+                self.stack.push(TreeIterStackItem::Item(item));
+                self.stack.push(TreeIterStackItem::Tree(&*left));
+                self.next()
+            }
+        }
+    }
+}
+
