@@ -80,27 +80,27 @@ impl<Item> Tree<Item> {
     }
 }
 
-pub enum FormattedTreeType {
-    PrettyIndent(String),
+pub enum FormattedTreeType<'a> {
+    PrettyIndent(&'a str),
     Line,
 }
 
 pub struct FormattedTree<'a, T> {
     inner: &'a Tree<T>,
-    format: FormattedTreeType,
+    format: FormattedTreeType<'a>,
 }
 
 impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedTree<'a,T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.format {
+        match self.format {
             FormattedTreeType::Line => self.inner.write_line(f),
-            FormattedTreeType::PrettyIndent(tab) => self.inner.pretty_write(f,&tab[..]),
+            FormattedTreeType::PrettyIndent(tab) => self.inner.pretty_write(f,tab),
         }
     }
 }
 
 impl<'a,T> FormattedTree<'a,T> {
-    pub fn new(t : &'a Tree<T>, fmt: FormattedTreeType) -> Self {
+    pub fn new(t : &'a Tree<T>, fmt: FormattedTreeType<'a>) -> Self {
         Self { inner: t, format: fmt }
     }
 }

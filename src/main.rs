@@ -18,7 +18,7 @@ fn main() {
     println!("{}",t);
     // (((3) <= 2) <= 1 => (4 => ((6) <= 5)))
 
-    println!("{}",FormattedTree::new(&t,FormattedTreeType::PrettyIndent(String::from("--"))));
+    println!("{}",FormattedTree::new(&t,FormattedTreeType::PrettyIndent("--")));
     // ------@  
     // ----5    
     // --------@
