@@ -2,7 +2,7 @@
 
 A small Rust project that illustrates iteration using a simple binary tree
 
-https://github.com/massimofasciano/test_iterators/blob/master/src/main.rs
+https://github.com/massimofasciano/test_iterators/blob/e15d9d9ab19d7de31095cb9355d539021adf94e0/src/main.rs
 
 ```rust
 use test_iterators::{FormattedTree, FormattedTreeType, tree, leaf};
