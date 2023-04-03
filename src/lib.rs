@@ -264,31 +264,31 @@ mod test {
     #[test]
     fn eq_test() {
         let t1 = 
-        Tree::branch(1,
-            Tree::branch(2,
-                Tree::leaf(3),
-                Tree::empty(),
-            ),
-            Tree::branch(4,
-                Tree::empty(),
-                Tree::branch(5, 
-                    Tree::leaf(6), 
-                    Tree::empty()
+            Tree::branch(1,
+                Tree::branch(2,
+                    Tree::leaf(3),
+                    Tree::empty(),
+                ),
+                Tree::branch(4,
+                    Tree::empty(),
+                    Tree::branch(5, 
+                        Tree::leaf(6), 
+                        Tree::empty()
+                    )
                 )
-            )
-        );
-    let t2 = 
-        tree(1,
-            tree(2,
-                leaf(3),
-                ()
-            ),
-            tree(4,
-                (),
-                tree(5,
-                    leaf(6),
+            );
+        let t2 = 
+            tree(1,
+                tree(2,
+                    leaf(3),
                     ()
-        )));
+                ),
+                tree(4,
+                    (),
+                    tree(5,
+                        leaf(6),
+                        ()
+            )));
         assert_eq!(t1,t2);
     }
 
