@@ -96,8 +96,13 @@ impl<'a,T> PrettyFormatTree<'a,T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+enum TreeIntoIterStackItem<T> {
+    Item(T),
+    Tree(Tree<T>),
+}
+
 pub struct TreeIntoIter<T> {
-    stack: Vec<Box<Tree<T>>>
+    stack: Vec<TreeIntoIterStackItem<T>>
 }
 
 impl<T> IntoIterator for Tree<T> {
@@ -105,7 +110,7 @@ impl<T> IntoIterator for Tree<T> {
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        TreeIntoIter { stack: vec![Box::new(self)] }
+        TreeIntoIter { stack: vec![TreeIntoIterStackItem::Tree(self)] }
     }
 }
 
@@ -116,20 +121,13 @@ impl<T> Iterator for TreeIntoIter<T> {
         let pop = self.stack.pop();
         match pop {
             None => None,
-            Some(tree) => {
-                match *tree {
-                    Tree::Empty => self.next(),
-                    Tree::Branch(item, left, right) => {
-                        if left.is_empty() && right.is_empty() {
-                            Some(item)
-                        } else {
-                            self.stack.push(right);
-                            self.stack.push(Box::new(Tree::new_item(item)));
-                            self.stack.push(left);
-                            self.next()
-                        }
-                    }
-                }
+            Some(TreeIntoIterStackItem::Item(item)) => Some(item),
+            Some(TreeIntoIterStackItem::Tree(Tree::Empty)) => self.next(),
+            Some(TreeIntoIterStackItem::Tree(Tree::Branch(item, left, right))) => {
+                self.stack.push(TreeIntoIterStackItem::Tree(*right));
+                self.stack.push(TreeIntoIterStackItem::Item(item));
+                self.stack.push(TreeIntoIterStackItem::Tree(*left));
+                self.next()
             }
         }
     }

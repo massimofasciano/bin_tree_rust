@@ -19,4 +19,7 @@ fn main() {
     for i in t.iter() {
         println!("{}",i)
     }
+    for i in t {
+        println!("{}",i)
+    }
 }
