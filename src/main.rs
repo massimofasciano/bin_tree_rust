@@ -16,4 +16,7 @@ fn main() {
     );
     println!("{}",t);
     println!("{}",PrettyFormatTree::new(&t));
+    for i in t {
+        println!("{}",i)
+    }
 }

@@ -75,6 +75,8 @@ impl<Item : std::fmt::Display> std::fmt::Display for Tree<Item> {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 #[repr(transparent)]
 pub struct PrettyFormatTree<'a, T> {
     inner: &'a Tree<T>
@@ -89,5 +91,46 @@ impl<'a,T : std::fmt::Display> std::fmt::Display for PrettyFormatTree<'a,T> {
 impl<'a,T> PrettyFormatTree<'a,T> {
     pub fn new(t : &'a Tree<T>) -> Self {
         Self { inner: t }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+pub struct TreeIntoIter<T> {
+    stack: Vec<Box<Tree<T>>>
+}
+
+impl<T> Iterator for TreeIntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let pop = self.stack.pop();
+        match pop {
+            None => None,
+            Some(tree) => {
+                match *tree {
+                    Tree::Empty => self.next(),
+                    Tree::Branch(item, left, right) => {
+                        if left.is_empty() && right.is_empty() {
+                            Some(item)
+                        } else {
+                            self.stack.push(right);
+                            self.stack.push(Box::new(Tree::new_item(item)));
+                            self.stack.push(left);
+                            self.next()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl<T> IntoIterator for Tree<T> {
+    type IntoIter = TreeIntoIter<T>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TreeIntoIter { stack: vec![Box::new(self)] }
     }
 }
