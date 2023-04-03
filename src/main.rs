@@ -18,7 +18,8 @@ fn main() {
     println!("{}",t);
     // (((3) <= 2) <= 1 => (4 => ((6) <= 5)))
 
-    println!("{}",FormattedTree::new(&t,FormattedTreeType::PrettyIndent("--")));
+    let ft = FormattedTree::new(&t,FormattedTreeType::PrettyIndent("--"));
+    println!("{}", ft);
     // ------@  
     // ----5    
     // --------@
@@ -38,6 +39,16 @@ fn main() {
     }
     println!("");
     // 3 2 1 4 6 5
+
+    for i in ft.iter() {
+        println!("|{i}|")
+    }
+    // |3|
+    // |2|
+    // |1|
+    // |4|
+    // |6|
+    // |5|
 
     for i in t.iter_mut() {
         print!("{}",i);

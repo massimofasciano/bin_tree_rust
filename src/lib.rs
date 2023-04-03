@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 #[derive(Debug,Clone)]
 pub enum Tree<Item> {
     Empty,
@@ -102,6 +104,14 @@ impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedTree<'a,T> {
 impl<'a,T> FormattedTree<'a,T> {
     pub fn new(t : &'a Tree<T>, fmt: FormattedTreeType<'a>) -> Self {
         Self { inner: t, format: fmt }
+    }
+}
+
+impl<'a,T > Deref for FormattedTree<'a,T> {
+    type Target = Tree<T>;
+
+    fn deref(&self) -> &Self::Target {
+        self.inner
     }
 }
 
