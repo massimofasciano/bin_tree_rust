@@ -1,16 +1,16 @@
 use test_iterators::{Tree, FormattedTree, FormattedTreeType};
 
 fn main() {
-    let mut t = Tree::new_branch(1,
-        Tree::new_branch(2,
-            Tree::new_item(3),
-            Tree::new(),
+    let mut t = Tree::branch(1,
+        Tree::branch(2,
+            Tree::leaf(3),
+            Tree::empty(),
         ),
-        Tree::new_branch(4,
-            Tree::new(),
-            Tree::new_branch(5, 
-                Tree::new_item(6), 
-                Tree::new()
+        Tree::branch(4,
+            Tree::empty(),
+            Tree::branch(5, 
+                Tree::leaf(6), 
+                Tree::empty()
             )
         )
     );

@@ -7,14 +7,27 @@ pub enum Tree<Item> {
 }
 
 impl<Item> Tree<Item> {
-    pub fn new_branch(item : Item, left: Tree<Item>, right: Tree<Item>) -> Self {
+    pub fn branch(item : Item, left: Tree<Item>, right: Tree<Item>) -> Self {
         Tree::Branch(item, Box::new(left), Box::new(right))
     }
-    pub fn new_item(item : Item) -> Self {
-        Self::new_branch(item, Default::default(), Default::default())
+    pub fn leaf(item : Item) -> Self {
+        Self::branch(item, Self::empty(), Self::empty())
     }
-    pub fn new() -> Self {
+    pub fn empty() -> Self {
         Default::default()
+    }
+    pub fn is_branch(&self) -> bool {
+        match self {
+            Tree::Branch(_,_,_) => !self.is_leaf(),
+            _ => false,
+        }
+    }
+    pub fn is_leaf(&self) -> bool {
+        match self {
+            Tree::Branch(_,left,right) => 
+                left.is_empty() && right.is_empty(),
+            _ => false,
+        }
     }
     pub fn is_empty(&self) -> bool {
         match self {
