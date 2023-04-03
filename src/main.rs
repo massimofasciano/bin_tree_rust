@@ -1,4 +1,4 @@
-use test_iterators::{Tree, PrettyFormatTree};
+use test_iterators::{Tree, FormattedTree, FormattedTreeType};
 
 fn main() {
     let mut t = Tree::new_branch(1,
@@ -18,20 +18,20 @@ fn main() {
     println!("{}",t);
     // (((3) <= 2) <= 1 => (4 => ((6) <= 5)))
 
-    println!("{}",PrettyFormatTree::new(&t));
-    //     @  
-    //   5    
-    //       @
-    //     6  
-    //       @
-    // 4      
-    //   @    
+    println!("{}",FormattedTree::new(&t,FormattedTreeType::PrettyIndent(String::from("--"))));
+    // ------@  
+    // ----5    
+    // --------@
+    // ------6  
+    // --------@
+    // --4      
+    // ----@    
     // 1        
-    //   @    
-    // 2
-    //     @
-    //   3
-    //     @
+    // ----@    
+    // --2
+    // ------@
+    // ----3
+    // ------@
 
     for i in t.iter() {
         print!("{} ",i)

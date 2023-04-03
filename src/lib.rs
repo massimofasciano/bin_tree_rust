@@ -20,25 +20,23 @@ impl<Item> Tree<Item> {
             _ => false,
         }
     }
-    pub fn pretty_write(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
-        where Item : std::fmt::Display 
-    {
-        self.pretty_write_indent(f, 0)
+}
+
+impl<Item> Default for Tree<Item> {
+    fn default() -> Self {
+        Tree::Empty
     }
-    fn pretty_write_indent(&self, f: &mut std::fmt::Formatter<'_>, indent : usize) -> std::fmt::Result
-        where Item : std::fmt::Display 
-    {
-        match self {
-            Tree::Empty => { 
-                write!(f,"{}{}\n","  ".repeat(indent),"@")
-            },
-            Tree::Branch(item, left, right) => {
-                right.pretty_write_indent(f, indent+1)?;
-                write!(f,"{}{}\n","  ".repeat(indent),item)?;
-                left.pretty_write_indent(f, indent+1)
-            }
-        }        
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+impl<Item : std::fmt::Display> std::fmt::Display for Tree<Item> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.write_line(f)
     }
+}
+
+impl<Item> Tree<Item> {
     pub fn write_line(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
         where Item : std::fmt::Display 
     {
@@ -61,36 +59,49 @@ impl<Item> Tree<Item> {
             }
         }        
     }
-}
-
-impl<Item> Default for Tree<Item> {
-    fn default() -> Self {
-        Tree::Empty
+    pub fn pretty_write(&self, f: &mut std::fmt::Formatter<'_>, tab: &str) -> std::fmt::Result
+        where Item : std::fmt::Display 
+    {
+        self.pretty_write_indent(f, tab, 0)
+    }
+    fn pretty_write_indent(&self, f: &mut std::fmt::Formatter<'_>, tab : &str, indent : usize) -> std::fmt::Result
+        where Item : std::fmt::Display 
+    {
+        match self {
+            Tree::Empty => { 
+                write!(f,"{}{}\n",tab.repeat(indent),"@")
+            },
+            Tree::Branch(item, left, right) => {
+                right.pretty_write_indent(f, tab, indent+1)?;
+                write!(f,"{}{}\n",tab.repeat(indent),item)?;
+                left.pretty_write_indent(f, tab, indent+1)
+            }
+        }        
     }
 }
 
-impl<Item : std::fmt::Display> std::fmt::Display for Tree<Item> {
+pub enum FormattedTreeType {
+    PrettyIndent(String),
+    Line,
+}
+
+pub struct FormattedTree<'a, T> {
+    inner: &'a Tree<T>,
+    format: FormattedTreeType,
+}
+
+impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedTree<'a,T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.write_line(f)
+        match &self.format {
+            FormattedTreeType::Line => self.inner.write_line(f),
+            FormattedTreeType::PrettyIndent(tab) => self.inner.pretty_write(f,&tab[..]),
+        }
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-#[repr(transparent)]
-pub struct PrettyFormatTree<'a, T> {
-    inner: &'a Tree<T>
-}
-
-impl<'a,T : std::fmt::Display> std::fmt::Display for PrettyFormatTree<'a,T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.inner.pretty_write(f)
-    }
-}
-
-impl<'a,T> PrettyFormatTree<'a,T> {
-    pub fn new(t : &'a Tree<T>) -> Self {
-        Self { inner: t }
+impl<'a,T> FormattedTree<'a,T> {
+    pub fn new(t : &'a Tree<T>, fmt: FormattedTreeType) -> Self {
+        Self { inner: t, format: fmt }
     }
 }
 
