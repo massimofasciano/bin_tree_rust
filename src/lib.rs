@@ -255,3 +255,59 @@ pub fn leaf<T>(item: T) -> Tree<T> {
     Tree::leaf(item)
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+#[cfg(test)]
+mod test {
+    use crate::{Tree, tree, leaf};
+
+    #[test]
+    fn eq_test() {
+        let t1 = 
+        Tree::branch(1,
+            Tree::branch(2,
+                Tree::leaf(3),
+                Tree::empty(),
+            ),
+            Tree::branch(4,
+                Tree::empty(),
+                Tree::branch(5, 
+                    Tree::leaf(6), 
+                    Tree::empty()
+                )
+            )
+        );
+    let t2 = 
+        tree(1,
+            tree(2,
+                leaf(3),
+                ()
+            ),
+            tree(4,
+                (),
+                tree(5,
+                    leaf(6),
+                    ()
+        )));
+        assert_eq!(t1,t2);
+    }
+
+    #[test]
+    fn iter_mut_test() {
+        let mut t = 
+            tree(1,
+                tree(2,
+                    tree(3,
+                        leaf(4),
+                        ()
+                    ),
+                    ()
+                ),
+                leaf(5)
+            );
+        t.iter_mut().for_each(|i| {
+            if *i % 2 == 1 { *i += 10 }
+        });
+        assert_eq!(t.to_string(),"((((4) <= 13) <= 2) <= 11 => (15))");
+    }
+}
