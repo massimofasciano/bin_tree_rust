@@ -160,12 +160,49 @@ impl<'a,T> Iterator for TreeIter<'a,T> {
             Some(TreeIterStackItem::Item(item)) => Some(item),
             Some(TreeIterStackItem::Tree(Tree::Empty)) => self.next(),
             Some(TreeIterStackItem::Tree(Tree::Branch(item, left, right))) => {
-                self.stack.push(TreeIterStackItem::Tree(&*right));
+                self.stack.push(TreeIterStackItem::Tree(right.as_ref()));
                 self.stack.push(TreeIterStackItem::Item(item));
-                self.stack.push(TreeIterStackItem::Tree(&*left));
+                self.stack.push(TreeIterStackItem::Tree(left.as_ref()));
                 self.next()
             }
         }
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+enum TreeIterMutStackItem<'a,T> {
+    Item(&'a mut T),
+    Tree(&'a mut Tree<T>),
+}
+
+pub struct TreeIterMut<'a, T> {
+    stack: Vec<TreeIterMutStackItem<'a,T>>
+}
+
+impl<'a, T> Tree<T> {
+    pub fn iter_mut(&'a mut self) -> TreeIterMut<'a, T> {
+        TreeIterMut { stack: vec![TreeIterMutStackItem::Tree(self)] }
+    }
+}
+
+impl<'a,T> Iterator for TreeIterMut<'a,T> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let pop = self.stack.pop();
+        match pop {
+            None => None,
+            Some(TreeIterMutStackItem::Item(item)) => Some(item),
+            Some(TreeIterMutStackItem::Tree(Tree::Empty)) => self.next(),
+            Some(TreeIterMutStackItem::Tree(Tree::Branch(item, left, right))) => {
+                self.stack.push(TreeIterMutStackItem::Tree(right.as_mut()));
+                self.stack.push(TreeIterMutStackItem::Item(item));
+                self.stack.push(TreeIterMutStackItem::Tree(left.as_mut()));
+                self.next()
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
