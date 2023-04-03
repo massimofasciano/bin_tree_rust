@@ -14,7 +14,7 @@ impl<Item> Tree<Item> {
         Self::branch(item, Self::empty(), Self::empty())
     }
     pub fn empty() -> Self {
-        Default::default()
+        Tree::Empty
     }
     pub fn is_branch(&self) -> bool {
         match self {
@@ -39,7 +39,7 @@ impl<Item> Tree<Item> {
 
 impl<Item> Default for Tree<Item> {
     fn default() -> Self {
-        Tree::Empty
+        Self::empty()
     }
 }
 
