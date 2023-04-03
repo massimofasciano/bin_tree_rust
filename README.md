@@ -2,24 +2,24 @@
 
 A small Rust project that illustrates iteration using a simple binary tree
 
+https://github.com/massimofasciano/test_iterators/blob/master/src/main.rs
+
 ```rust
-use test_iterators::{Tree, FormattedTree, FormattedTreeType};
+use test_iterators::{FormattedTree, FormattedTreeType, tree, leaf};
 
 fn main() {
     let mut t = 
-        Tree::branch(1,
-            Tree::branch(2,
-                Tree::leaf(3),
-                Tree::empty(),
+        tree(1,
+            tree(2,
+                leaf(3),
+                ()
             ),
-            Tree::branch(4,
-                Tree::empty(),
-                Tree::branch(5, 
-                    Tree::leaf(6), 
-                    Tree::empty()
-                )
-            )
-        );
+            tree(4,
+                (),
+                tree(5,
+                    leaf(6),
+                    ()
+        )));
 
     println!("{}",t);
     // (((3) <= 2) <= 1 => (4 => ((6) <= 5)))

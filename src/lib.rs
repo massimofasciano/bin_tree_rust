@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum Tree<Item> {
     Empty,
     Branch(Item,Box<Tree<Item>>,Box<Tree<Item>>),
@@ -240,3 +240,18 @@ impl<'a,T> Iterator for TreeIterMut<'a,T> {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
+impl<T> From<()> for Tree<T> {
+    fn from(_: ()) -> Self {
+        Self::empty()
+    }
+}
+
+pub fn tree<T>(item: T, left: impl Into<Tree<T>>, right: impl Into<Tree<T>>) -> Tree<T> {
+    Tree::branch(item, left.into(), right.into())
+}
+
+pub fn leaf<T>(item: T) -> Tree<T> {
+    Tree::leaf(item)
+}
+
