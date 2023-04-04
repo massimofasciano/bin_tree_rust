@@ -115,6 +115,15 @@ pub struct BinTreeIter<'a, T> {
     traversal: BinTreeTraversal,
 }
 
+impl<'a, T> IntoIterator for &'a BinTree<T> {
+    type IntoIter = BinTreeIter<'a, T>;
+    type Item = &'a T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl<'a, T> BinTree<T> {
     pub fn iter(&'a self) -> BinTreeIter<'a, T> {
         self.iter_dfs_in()
@@ -194,6 +203,15 @@ enum BinTreeIterMutDataItem<'a,T> {
 pub struct BinTreeIterMut<'a, T> {
     data: VecDeque<BinTreeIterMutDataItem<'a,T>>,
     traversal: BinTreeTraversal,
+}
+
+impl<'a, T> IntoIterator for &'a mut BinTree<T> {
+    type IntoIter = BinTreeIterMut<'a, T>;
+    type Item = &'a mut T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
 }
 
 impl<'a, T> BinTree<T> {
