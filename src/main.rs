@@ -66,7 +66,7 @@ fn main() {
     // 5
 
     for i in t {
-        print!("{} ",i)
+        print!("{} ",i);
     }
     println!("");
     // 1 2 1 4 2 5
