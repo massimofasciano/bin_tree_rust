@@ -186,18 +186,37 @@ impl<'a,T> Iterator for BinTreeIter<'a,T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-enum BinTreeIterMutStackItem<'a,T> {
+enum BinTreeIterMutDataItem<'a,T> {
     Item(&'a mut T),
     Tree(&'a mut BinTree<T>),
 }
 
 pub struct BinTreeIterMut<'a, T> {
-    stack: Vec<BinTreeIterMutStackItem<'a,T>>
+    data: VecDeque<BinTreeIterMutDataItem<'a,T>>,
+    traversal: BinTreeTraversal,
 }
 
 impl<'a, T> BinTree<T> {
     pub fn iter_mut(&'a mut self) -> BinTreeIterMut<'a, T> {
-        BinTreeIterMut { stack: vec![BinTreeIterMutStackItem::Tree(self)] }
+        self.iter_mut_dfs_in()
+    }
+    fn iter_mut_traversal(&'a mut self, traversal : BinTreeTraversal) -> BinTreeIterMut<'a, T> {
+        BinTreeIterMut { 
+            data: VecDeque::from(vec![BinTreeIterMutDataItem::Tree(self)]),
+            traversal,
+        }
+    }
+    pub fn iter_mut_dfs_in(&'a mut self) -> BinTreeIterMut<'a, T> {
+        self.iter_mut_traversal(DepthFirst(InOrder))
+    }
+    pub fn iter_mut_dfs_pre(&'a mut self) -> BinTreeIterMut<'a, T> {
+        self.iter_mut_traversal(DepthFirst(PreOrder))
+    }
+    pub fn iter_mut_dfs_post(&'a mut self) -> BinTreeIterMut<'a, T> {
+        self.iter_mut_traversal(DepthFirst(PostOrder))
+    }
+    pub fn iter_mut_bfs(&'a mut self) -> BinTreeIterMut<'a, T> {
+        self.iter_mut_traversal(BreadthFirst)
     }
 }
 
@@ -205,18 +224,43 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let pop = self.stack.pop();
+        let pop = match self.traversal {
+            DepthFirst(_) => self.data.pop_back(),
+            BreadthFirst => self.data.pop_front(),
+        };
         match pop {
             None => None,
-            Some(BinTreeIterMutStackItem::Item(item)) => Some(item),
-            Some(BinTreeIterMutStackItem::Tree(BinTree::Empty)) => self.next(),
-            Some(BinTreeIterMutStackItem::Tree(BinTree::Branch(item, left, right))) => {
-                self.stack.push(BinTreeIterMutStackItem::Tree(right.as_mut()));
-                self.stack.push(BinTreeIterMutStackItem::Item(item));
-                self.stack.push(BinTreeIterMutStackItem::Tree(left.as_mut()));
-                self.next()
+            Some(BinTreeIterMutDataItem::Item(item)) => Some(item),
+            Some(BinTreeIterMutDataItem::Tree(BinTree::Empty)) => self.next(),
+            Some(BinTreeIterMutDataItem::Tree(BinTree::Branch(item, left, right))) => {
+                match self.traversal {
+                    DepthFirst(InOrder) => {
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.next()
+                    },
+                    DepthFirst(PreOrder) => {
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.next()
+                    },
+                    DepthFirst(PostOrder) => {
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.next()
+
+                    },
+                    BreadthFirst => {
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.next()
+                    },
+                }
             }
         }
     }
 }
-

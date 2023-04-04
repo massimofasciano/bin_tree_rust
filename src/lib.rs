@@ -258,4 +258,21 @@ mod test {
         assert_eq!(t.iter_dfs_post().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
         assert_eq!(t.iter_bfs().map(|i|*i).collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
     }
+
+    #[test]
+    fn iter_mut_order_test() {
+        let mut t = test_tree();
+        let mut i = 0;
+        t.iter_mut().for_each(|e| { i += 1; *e += i; });
+        assert_eq!(t.to_vec(),vec![4, 4, 4, 8, 11, 11]);
+        t.iter_mut_dfs_in().for_each(|e| { i += 1; *e += i; });
+        assert_eq!(t.to_vec(),vec![11, 12, 13, 18, 22, 23]);
+        t.iter_mut_dfs_pre().for_each(|e| { i += 1; *e += i; });
+        assert_eq!(t.to_vec(),vec![26, 26, 26, 34, 40, 40]);
+        t.iter_mut_dfs_post().for_each(|e| { i += 1; *e += i; });
+        assert_eq!(t.to_vec(),vec![45, 46, 50, 57, 61, 62]);
+        t.iter_mut_bfs().for_each(|e| { i += 1; *e += i; });
+        assert_eq!(t.to_vec(),vec![73, 72, 75, 84, 91, 91]);
+    }
+
 }
