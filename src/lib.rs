@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
-mod stack_iter;
+pub mod stack_iter;
+pub use stack_iter::*;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum BinTree<Item> {
