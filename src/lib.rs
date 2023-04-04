@@ -149,6 +149,20 @@ pub fn leaf<T>(item: T) -> BinTree<T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+impl<Item> BinTree<Item> {
+    pub fn to_vec(&self) -> Vec<Item> where Item : Clone {
+        self.iter().map(|e|e.clone()).collect()
+    }
+}
+
+impl<Item> Into<Vec<Item>> for BinTree<Item> {
+    fn into(self) -> Vec<Item> {
+        self.into_iter().collect()
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 #[cfg(test)]
 mod test {
     use crate::{BinTree, tree, leaf};
@@ -218,7 +232,7 @@ mod test {
     }
 
     #[test]
-    fn iter_order_test() {
+    fn into_iter_order_test() {
         let t = test_tree();
         assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
 
@@ -233,5 +247,15 @@ mod test {
 
         let t = test_tree();
         assert_eq!(t.into_iter_bfs().collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
+    }
+
+    #[test]
+    fn iter_order_test() {
+        let t = test_tree();
+        assert_eq!(t.iter().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
+        assert_eq!(t.iter_dfs_in().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
+        assert_eq!(t.iter_dfs_pre().map(|i|i.clone()).collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
+        assert_eq!(t.iter_dfs_post().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
+        assert_eq!(t.iter_bfs().map(|i|*i).collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
     }
 }
