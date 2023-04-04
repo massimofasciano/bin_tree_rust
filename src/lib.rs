@@ -11,30 +11,30 @@ pub enum BinTree<Item> {
 
 impl<Item> BinTree<Item> {
     pub fn branch(item : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
-        BinTree::Branch(item, Box::new(left), Box::new(right))
+        Self::Branch(item, Box::new(left), Box::new(right))
     }
     pub fn leaf(item : Item) -> Self {
         Self::branch(item, Self::empty(), Self::empty())
     }
     pub fn empty() -> Self {
-        BinTree::Empty
+        Self::Empty
     }
     pub fn is_branch(&self) -> bool {
         match self {
-            BinTree::Branch(_,_,_) => !self.is_leaf(),
+            Self::Branch(_,_,_) => !self.is_leaf(),
             _ => false,
         }
     }
     pub fn is_leaf(&self) -> bool {
         match self {
-            BinTree::Branch(_,left,right) => 
+            Self::Branch(_,left,right) => 
                 left.is_empty() && right.is_empty(),
             _ => false,
         }
     }
     pub fn is_empty(&self) -> bool {
         match self {
-            BinTree::Empty => true,
+            Self::Empty => true,
             _ => false,
         }
     }
@@ -59,10 +59,10 @@ impl<Item> BinTree<Item> {
         where Item : std::fmt::Display 
     {
         match self {
-            BinTree::Empty => { 
+            Self::Empty => { 
                 write!(f,"()")
             },
-            BinTree::Branch(item, left, right) => {
+            Self::Branch(item, left, right) => {
                 write!(f,"(")?;
                 if !left.is_empty() {
                     left.write_line(f)?;
@@ -86,10 +86,10 @@ impl<Item> BinTree<Item> {
         where Item : std::fmt::Display 
     {
         match self {
-            BinTree::Empty => { 
+            Self::Empty => { 
                 write!(f,"{}{}\n",tab.repeat(indent),"@")
             },
-            BinTree::Branch(item, left, right) => {
+            Self::Branch(item, left, right) => {
                 right.pretty_write_indent(f, tab, indent+1)?;
                 write!(f,"{}{}\n",tab.repeat(indent),item)?;
                 left.pretty_write_indent(f, tab, indent+1)
@@ -163,6 +163,71 @@ impl<Item> Into<Vec<Item>> for BinTree<Item> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+impl<Item> BinTree<Item> {
+    pub fn push(&mut self, new_item : Item) where Item : PartialOrd {
+        self.push_sorted(new_item);
+    }
+    pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
+        match self {
+            Self::Empty => {
+                *self = Self::leaf(new_item)
+            },
+            Self::Branch(item, left, right) => {
+                if new_item < *item {
+                    left.push_sorted(new_item);
+                } else {
+                    right.push_sorted(new_item);
+                }
+            }
+        };
+    }
+    pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
+        for elem in iter {
+            self.push_sorted(elem);
+        }
+    }
+    pub fn push_right(&mut self, new_item : Item) {
+        match self {
+            Self::Empty => {
+                *self = Self::leaf(new_item)
+            },
+            Self::Branch(_, _, right) => {
+                right.push_right(new_item);
+            }
+        };
+    }
+    pub fn extend_right<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
+        for elem in iter {
+            self.push_right(elem);
+        }
+    }
+    pub fn push_left(&mut self, new_item : Item) {
+        match self {
+            Self::Empty => {
+                *self = Self::leaf(new_item)
+            },
+            Self::Branch(_, left, _) => {
+                left.push_left(new_item);
+            }
+        };
+    }
+    pub fn extend_left<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
+        for elem in iter {
+            self.push_left(elem);
+        }
+    }
+}
+
+impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
+    fn extend<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
+        for elem in iter {
+            self.push(elem);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 #[cfg(test)]
 mod test {
     use crate::{BinTree, tree, leaf};
@@ -183,7 +248,7 @@ mod test {
 
     #[test]
     fn eq_test() {
-        let t1 = 
+        let bt = 
             BinTree::branch(1,
                 BinTree::branch(2,
                     BinTree::leaf(3),
@@ -197,54 +262,29 @@ mod test {
                     )
                 )
             );
-        let t2 = 
-            tree(1,
-                tree(2,
-                    leaf(3),
-                    ()
-                ),
-                tree(4,
-                    (),
-                    tree(5,
-                        leaf(6),
-                        ()
-            )));
-        assert_eq!(t1,t2);
+        let t = test_tree();
+        assert_eq!(t,bt);
     }
 
     #[test]
     fn iter_mut_test() {
-        let mut t = 
-            tree(1,
-                tree(2,
-                    tree(3,
-                        leaf(4),
-                        ()
-                    ),
-                    ()
-                ),
-                leaf(5)
-            );
+        let mut t = test_tree();
         t.iter_mut().for_each(|i| {
             if *i % 2 == 1 { *i += 10 }
         });
-        assert_eq!(t.to_string(),"((((4) <= 13) <= 2) <= 11 => (15))");
+        assert_eq!(t.to_string(),"(((13) <= 2) <= 11 => (4 => ((6) <= 15)))");
     }
 
     #[test]
     fn into_iter_order_test() {
         let t = test_tree();
         assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
-
         let t = test_tree();
         assert_eq!(t.into_iter_dfs_in().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
-
         let t = test_tree();
         assert_eq!(t.into_iter_dfs_pre().collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
-
         let t = test_tree();
         assert_eq!(t.into_iter_dfs_post().collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
-
         let t = test_tree();
         assert_eq!(t.into_iter_bfs().collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
     }
@@ -273,6 +313,48 @@ mod test {
         assert_eq!(t.to_vec(),vec![45, 46, 50, 57, 61, 62]);
         t.iter_mut_bfs().for_each(|e| { i += 1; *e += i; });
         assert_eq!(t.to_vec(),vec![73, 72, 75, 84, 91, 91]);
+    }
+
+    #[test]
+    fn push_sorted_test() {
+        let mut t = BinTree::empty();
+        t.push(4);
+        t.push(2);
+        t.push(8);
+        t.push(1);
+        assert_eq!(t.to_string(),"(((1) <= 2) <= 4 => (8))");
+        assert_eq!(t.to_vec(),vec![1,2,4,8]);
+        t.extend(vec![18,6,3,5,11]);
+        assert_eq!(t.to_string(),"(((1) <= 2 => (3)) <= 4 => (((5) <= 6) <= 8 => ((11) <= 18)))");
+        assert_eq!(t.to_vec(),vec![1,2,3,4,5,6,8,11,18]);
+    }
+
+    #[test]
+    fn push_right_test() {
+        let mut t = BinTree::empty();
+        t.push_right(4);
+        t.push_right(2);
+        t.push_right(8);
+        t.push_right(1);
+        assert_eq!(t.to_string(),"(4 => (2 => (8 => (1))))");
+        assert_eq!(t.to_vec(),vec![4,2,8,1]);
+        t.extend_right(vec![18,6,3,5,11]);
+        assert_eq!(t.to_string(),"(4 => (2 => (8 => (1 => (18 => (6 => (3 => (5 => (11)))))))))");
+        assert_eq!(t.to_vec(),vec![4,2,8,1,18,6,3,5,11]);
+    }
+
+    #[test]
+    fn push_left_test() {
+        let mut t = BinTree::empty();
+        t.push_left(4);
+        t.push_left(2);
+        t.push_left(8);
+        t.push_left(1);
+        assert_eq!(t.to_string(),"((((1) <= 8) <= 2) <= 4)");
+        assert_eq!(t.to_vec(),vec![1,8,2,4]);
+        t.extend_left(vec![18,6,3,5,11]);
+        assert_eq!(t.to_string(),"(((((((((11) <= 5) <= 3) <= 6) <= 18) <= 1) <= 8) <= 2) <= 4)");
+        assert_eq!(t.to_vec(),vec![11,5,3,6,18,1,8,2,4]);
     }
 
 }
