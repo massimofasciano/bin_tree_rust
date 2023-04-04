@@ -1,4 +1,4 @@
-use test_iterators::{FormattedTree, FormattedTreeType, tree, leaf};
+use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf};
 
 fn main() {
     let mut t = 
@@ -17,7 +17,7 @@ fn main() {
     println!("{}",t);
     // (((3) <= 2) <= 1 => (4 => ((6) <= 5)))
 
-    let ft = FormattedTree::new(&t,FormattedTreeType::PrettyIndent("--"));
+    let ft = FormattedBinTree::new(&t,FormattedBinTreeType::PrettyIndent("--"));
     println!("{}", ft);
     // ------@  
     // ----5    

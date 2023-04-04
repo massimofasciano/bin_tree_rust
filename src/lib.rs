@@ -1,43 +1,43 @@
 use std::ops::Deref;
 
 #[derive(Debug,Clone,PartialEq)]
-pub enum Tree<Item> {
+pub enum BinTree<Item> {
     Empty,
-    Branch(Item,Box<Tree<Item>>,Box<Tree<Item>>),
+    Branch(Item,Box<BinTree<Item>>,Box<BinTree<Item>>),
 }
 
-impl<Item> Tree<Item> {
-    pub fn branch(item : Item, left: Tree<Item>, right: Tree<Item>) -> Self {
-        Tree::Branch(item, Box::new(left), Box::new(right))
+impl<Item> BinTree<Item> {
+    pub fn branch(item : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
+        BinTree::Branch(item, Box::new(left), Box::new(right))
     }
     pub fn leaf(item : Item) -> Self {
         Self::branch(item, Self::empty(), Self::empty())
     }
     pub fn empty() -> Self {
-        Tree::Empty
+        BinTree::Empty
     }
     pub fn is_branch(&self) -> bool {
         match self {
-            Tree::Branch(_,_,_) => !self.is_leaf(),
+            BinTree::Branch(_,_,_) => !self.is_leaf(),
             _ => false,
         }
     }
     pub fn is_leaf(&self) -> bool {
         match self {
-            Tree::Branch(_,left,right) => 
+            BinTree::Branch(_,left,right) => 
                 left.is_empty() && right.is_empty(),
             _ => false,
         }
     }
     pub fn is_empty(&self) -> bool {
         match self {
-            Tree::Empty => true,
+            BinTree::Empty => true,
             _ => false,
         }
     }
 }
 
-impl<Item> Default for Tree<Item> {
+impl<Item> Default for BinTree<Item> {
     fn default() -> Self {
         Self::empty()
     }
@@ -45,21 +45,21 @@ impl<Item> Default for Tree<Item> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-impl<Item : std::fmt::Display> std::fmt::Display for Tree<Item> {
+impl<Item : std::fmt::Display> std::fmt::Display for BinTree<Item> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.write_line(f)
     }
 }
 
-impl<Item> Tree<Item> {
+impl<Item> BinTree<Item> {
     pub fn write_line(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
         where Item : std::fmt::Display 
     {
         match self {
-            Tree::Empty => { 
+            BinTree::Empty => { 
                 write!(f,"()")
             },
-            Tree::Branch(item, left, right) => {
+            BinTree::Branch(item, left, right) => {
                 write!(f,"(")?;
                 if !left.is_empty() {
                     left.write_line(f)?;
@@ -83,10 +83,10 @@ impl<Item> Tree<Item> {
         where Item : std::fmt::Display 
     {
         match self {
-            Tree::Empty => { 
+            BinTree::Empty => { 
                 write!(f,"{}{}\n",tab.repeat(indent),"@")
             },
-            Tree::Branch(item, left, right) => {
+            BinTree::Branch(item, left, right) => {
                 right.pretty_write_indent(f, tab, indent+1)?;
                 write!(f,"{}{}\n",tab.repeat(indent),item)?;
                 left.pretty_write_indent(f, tab, indent+1)
@@ -95,33 +95,33 @@ impl<Item> Tree<Item> {
     }
 }
 
-pub enum FormattedTreeType<'a> {
+pub enum FormattedBinTreeType<'a> {
     PrettyIndent(&'a str),
     Line,
 }
 
-pub struct FormattedTree<'a, T> {
-    inner: &'a Tree<T>,
-    format: FormattedTreeType<'a>,
+pub struct FormattedBinTree<'a, T> {
+    inner: &'a BinTree<T>,
+    format: FormattedBinTreeType<'a>,
 }
 
-impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedTree<'a,T> {
+impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedBinTree<'a,T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.format {
-            FormattedTreeType::Line => self.inner.write_line(f),
-            FormattedTreeType::PrettyIndent(tab) => self.inner.pretty_write(f,tab),
+            FormattedBinTreeType::Line => self.inner.write_line(f),
+            FormattedBinTreeType::PrettyIndent(tab) => self.inner.pretty_write(f,tab),
         }
     }
 }
 
-impl<'a,T> FormattedTree<'a,T> {
-    pub fn new(t : &'a Tree<T>, fmt: FormattedTreeType<'a>) -> Self {
+impl<'a,T> FormattedBinTree<'a,T> {
+    pub fn new(t : &'a BinTree<T>, fmt: FormattedBinTreeType<'a>) -> Self {
         Self { inner: t, format: fmt }
     }
 }
 
-impl<'a,T > Deref for FormattedTree<'a,T> {
-    type Target = Tree<T>;
+impl<'a,T > Deref for FormattedBinTree<'a,T> {
+    type Target = BinTree<T>;
 
     fn deref(&self) -> &Self::Target {
         self.inner
@@ -130,37 +130,37 @@ impl<'a,T > Deref for FormattedTree<'a,T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-enum TreeIntoIterStackItem<T> {
+enum BinTreeIntoIterStackItem<T> {
     Item(T),
-    Tree(Tree<T>),
+    Tree(BinTree<T>),
 }
 
-pub struct TreeIntoIter<T> {
-    stack: Vec<TreeIntoIterStackItem<T>>
+pub struct BinTreeIntoIter<T> {
+    stack: Vec<BinTreeIntoIterStackItem<T>>
 }
 
-impl<T> IntoIterator for Tree<T> {
-    type IntoIter = TreeIntoIter<T>;
+impl<T> IntoIterator for BinTree<T> {
+    type IntoIter = BinTreeIntoIter<T>;
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        TreeIntoIter { stack: vec![TreeIntoIterStackItem::Tree(self)] }
+        BinTreeIntoIter { stack: vec![BinTreeIntoIterStackItem::Tree(self)] }
     }
 }
 
-impl<T> Iterator for TreeIntoIter<T> {
+impl<T> Iterator for BinTreeIntoIter<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         let pop = self.stack.pop();
         match pop {
             None => None,
-            Some(TreeIntoIterStackItem::Item(item)) => Some(item),
-            Some(TreeIntoIterStackItem::Tree(Tree::Empty)) => self.next(),
-            Some(TreeIntoIterStackItem::Tree(Tree::Branch(item, left, right))) => {
-                self.stack.push(TreeIntoIterStackItem::Tree(*right));
-                self.stack.push(TreeIntoIterStackItem::Item(item));
-                self.stack.push(TreeIntoIterStackItem::Tree(*left));
+            Some(BinTreeIntoIterStackItem::Item(item)) => Some(item),
+            Some(BinTreeIntoIterStackItem::Tree(BinTree::Empty)) => self.next(),
+            Some(BinTreeIntoIterStackItem::Tree(BinTree::Branch(item, left, right))) => {
+                self.stack.push(BinTreeIntoIterStackItem::Tree(*right));
+                self.stack.push(BinTreeIntoIterStackItem::Item(item));
+                self.stack.push(BinTreeIntoIterStackItem::Tree(*left));
                 self.next()
             }
         }
@@ -169,34 +169,34 @@ impl<T> Iterator for TreeIntoIter<T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-enum TreeIterStackItem<'a,T> {
+enum BinTreeIterStackItem<'a,T> {
     Item(&'a T),
-    Tree(&'a Tree<T>),
+    Tree(&'a BinTree<T>),
 }
 
-pub struct TreeIter<'a, T> {
-    stack: Vec<TreeIterStackItem<'a,T>>
+pub struct BinTreeIter<'a, T> {
+    stack: Vec<BinTreeIterStackItem<'a,T>>
 }
 
-impl<'a, T> Tree<T> {
-    pub fn iter(&'a self) -> TreeIter<'a, T> {
-        TreeIter { stack: vec![TreeIterStackItem::Tree(self)] }
+impl<'a, T> BinTree<T> {
+    pub fn iter(&'a self) -> BinTreeIter<'a, T> {
+        BinTreeIter { stack: vec![BinTreeIterStackItem::Tree(self)] }
     }
 }
 
-impl<'a,T> Iterator for TreeIter<'a,T> {
+impl<'a,T> Iterator for BinTreeIter<'a,T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
         let pop = self.stack.pop();
         match pop {
             None => None,
-            Some(TreeIterStackItem::Item(item)) => Some(item),
-            Some(TreeIterStackItem::Tree(Tree::Empty)) => self.next(),
-            Some(TreeIterStackItem::Tree(Tree::Branch(item, left, right))) => {
-                self.stack.push(TreeIterStackItem::Tree(right.as_ref()));
-                self.stack.push(TreeIterStackItem::Item(item));
-                self.stack.push(TreeIterStackItem::Tree(left.as_ref()));
+            Some(BinTreeIterStackItem::Item(item)) => Some(item),
+            Some(BinTreeIterStackItem::Tree(BinTree::Empty)) => self.next(),
+            Some(BinTreeIterStackItem::Tree(BinTree::Branch(item, left, right))) => {
+                self.stack.push(BinTreeIterStackItem::Tree(right.as_ref()));
+                self.stack.push(BinTreeIterStackItem::Item(item));
+                self.stack.push(BinTreeIterStackItem::Tree(left.as_ref()));
                 self.next()
             }
         }
@@ -205,34 +205,34 @@ impl<'a,T> Iterator for TreeIter<'a,T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-enum TreeIterMutStackItem<'a,T> {
+enum BinTreeIterMutStackItem<'a,T> {
     Item(&'a mut T),
-    Tree(&'a mut Tree<T>),
+    Tree(&'a mut BinTree<T>),
 }
 
-pub struct TreeIterMut<'a, T> {
-    stack: Vec<TreeIterMutStackItem<'a,T>>
+pub struct BinTreeIterMut<'a, T> {
+    stack: Vec<BinTreeIterMutStackItem<'a,T>>
 }
 
-impl<'a, T> Tree<T> {
-    pub fn iter_mut(&'a mut self) -> TreeIterMut<'a, T> {
-        TreeIterMut { stack: vec![TreeIterMutStackItem::Tree(self)] }
+impl<'a, T> BinTree<T> {
+    pub fn iter_mut(&'a mut self) -> BinTreeIterMut<'a, T> {
+        BinTreeIterMut { stack: vec![BinTreeIterMutStackItem::Tree(self)] }
     }
 }
 
-impl<'a,T> Iterator for TreeIterMut<'a,T> {
+impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
         let pop = self.stack.pop();
         match pop {
             None => None,
-            Some(TreeIterMutStackItem::Item(item)) => Some(item),
-            Some(TreeIterMutStackItem::Tree(Tree::Empty)) => self.next(),
-            Some(TreeIterMutStackItem::Tree(Tree::Branch(item, left, right))) => {
-                self.stack.push(TreeIterMutStackItem::Tree(right.as_mut()));
-                self.stack.push(TreeIterMutStackItem::Item(item));
-                self.stack.push(TreeIterMutStackItem::Tree(left.as_mut()));
+            Some(BinTreeIterMutStackItem::Item(item)) => Some(item),
+            Some(BinTreeIterMutStackItem::Tree(BinTree::Empty)) => self.next(),
+            Some(BinTreeIterMutStackItem::Tree(BinTree::Branch(item, left, right))) => {
+                self.stack.push(BinTreeIterMutStackItem::Tree(right.as_mut()));
+                self.stack.push(BinTreeIterMutStackItem::Item(item));
+                self.stack.push(BinTreeIterMutStackItem::Tree(left.as_mut()));
                 self.next()
             }
         }
@@ -241,39 +241,39 @@ impl<'a,T> Iterator for TreeIterMut<'a,T> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-impl<T> From<()> for Tree<T> {
+impl<T> From<()> for BinTree<T> {
     fn from(_: ()) -> Self {
         Self::empty()
     }
 }
 
-pub fn tree<T>(item: T, left: impl Into<Tree<T>>, right: impl Into<Tree<T>>) -> Tree<T> {
-    Tree::branch(item, left.into(), right.into())
+pub fn tree<T>(item: T, left: impl Into<BinTree<T>>, right: impl Into<BinTree<T>>) -> BinTree<T> {
+    BinTree::branch(item, left.into(), right.into())
 }
 
-pub fn leaf<T>(item: T) -> Tree<T> {
-    Tree::leaf(item)
+pub fn leaf<T>(item: T) -> BinTree<T> {
+    BinTree::leaf(item)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod test {
-    use crate::{Tree, tree, leaf};
+    use crate::{BinTree, tree, leaf};
 
     #[test]
     fn eq_test() {
         let t1 = 
-            Tree::branch(1,
-                Tree::branch(2,
-                    Tree::leaf(3),
-                    Tree::empty(),
+            BinTree::branch(1,
+                BinTree::branch(2,
+                    BinTree::leaf(3),
+                    BinTree::empty(),
                 ),
-                Tree::branch(4,
-                    Tree::empty(),
-                    Tree::branch(5, 
-                        Tree::leaf(6), 
-                        Tree::empty()
+                BinTree::branch(4,
+                    BinTree::empty(),
+                    BinTree::branch(5, 
+                        BinTree::leaf(6), 
+                        BinTree::empty()
                     )
                 )
             );
