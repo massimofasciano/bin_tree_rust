@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
-pub mod stack_iter;
-pub use stack_iter::*;
+pub mod iter_deque;
+pub use iter_deque::*;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum BinTree<Item> {
@@ -153,6 +153,20 @@ pub fn leaf<T>(item: T) -> BinTree<T> {
 mod test {
     use crate::{BinTree, tree, leaf};
 
+    fn test_tree() -> BinTree<i32> {
+        tree(1,
+            tree(2,
+                leaf(3),
+                ()
+            ),
+            tree(4,
+                (),
+                tree(5,
+                    leaf(6),
+                    ()
+        )))
+    }
+
     #[test]
     fn eq_test() {
         let t1 = 
@@ -201,5 +215,23 @@ mod test {
             if *i % 2 == 1 { *i += 10 }
         });
         assert_eq!(t.to_string(),"((((4) <= 13) <= 2) <= 11 => (15))");
+    }
+
+    #[test]
+    fn iter_order_test() {
+        let t = test_tree();
+        assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
+
+        let t = test_tree();
+        assert_eq!(t.into_iter_dfs_in().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
+
+        let t = test_tree();
+        assert_eq!(t.into_iter_dfs_pre().collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
+
+        let t = test_tree();
+        assert_eq!(t.into_iter_dfs_post().collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
+
+        let t = test_tree();
+        assert_eq!(t.into_iter_bfs().collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
     }
 }
