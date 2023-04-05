@@ -1,4 +1,4 @@
-use crate::{BinTree, BinTreeIntoIter, BinTreeIter, BinTreeIterMut};
+use crate::{BinTree, BinTreeIntoIter, BinTreeIter};
 
 #[derive(Debug,Clone)]
 #[repr(transparent)]
@@ -28,13 +28,13 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
         self.data.contains_sorted(value)
     }
     pub fn iter(&self) -> BinTreeIter<Item> {
-        self.data.iter()
-    }
-    pub fn iter_mut(&mut self) -> BinTreeIterMut<Item> {
-        self.data.iter_mut()
+        self.data.iter_dfs_in()
     }
     pub fn into_inner(self) -> BinTree<Item> {
         self.data
+    }
+    pub fn inner(&self) -> &BinTree<Item> {
+        &self.data
     }
 }
 
@@ -65,7 +65,7 @@ impl<T : PartialOrd> IntoIterator for OrderedSetBinTree<T> {
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.data.into_iter()
+        self.data.into_iter_dfs_in()
     }
 }
 
