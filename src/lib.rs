@@ -310,49 +310,32 @@ impl<Item> BinTree<Item> {
             }
         }
     }
-    pub fn min(&self) -> Option<&Item> where Item : PartialOrd {
-        // assumes that the tree is sorted
-        if self.is_branch() {
-            if self.left().unwrap().is_empty() {
-                self.item()
-            } else {
-                self.left().unwrap().min()
-            }
-        } else {
-            None
-        }
-    }
-    pub fn max(&self) -> Option<&Item> where Item : PartialOrd {
-        // assumes that the tree is sorted
-        if self.is_branch() {
-            if self.right().unwrap().is_empty() {
-                self.item()
-            } else {
-                self.right().unwrap().max()
-            }
-        } else {
-            None
-        }
-    }
     pub fn min_mut(&mut self) -> Option<&mut Item> where Item : PartialOrd {
         // assumes that the tree is sorted
-        if self.is_branch() {
-            if self.left().unwrap().is_empty() {
-                self.item_mut()
-            } else {
-                self.left_mut().unwrap().min_mut()
-            }
-        } else {
-            None
+        match self {
+            Self::Branch(item, left, _right) => {
+                if left.is_empty() {
+                    Some(item)
+                } else {
+                    left.min_mut()
+                }
+            },
+            Self::Empty => None,
         }
     }
-    pub fn max_mut(&mut self) -> Option<&mut Item> where Item : PartialOrd {
-        // assumes that the tree is sorted
-        if self.is_branch() {
-            if self.right().unwrap().is_empty() {
-                self.item_mut()
+    /// returns the mutable tree node containing the minimum value item
+    /// assumes that the tree is sorted
+    fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+        if self.is_leaf() {
+            Some(self)
+        } else if self.is_branch() {
+            if self.left().unwrap().is_empty() {
+                // no left path
+                Some(self)
             } else {
-                self.right_mut().unwrap().max_mut()
+                // min from left path
+                self.left_mut().unwrap().min_tree_mut()
+
             }
         } else {
             None
@@ -389,9 +372,10 @@ impl<Item> BinTree<Item> {
                     *self = *right;
                     Some(it)
                 } else {
-                    let min_right = right.min_mut().unwrap();
-                    std::mem::swap(item,min_right);
-                    right.pop_sorted()
+                    let min_right = right.min_tree_mut().expect("min right should always return some tree");
+                    let min_right_item = min_right.item_mut().expect("min right should always return some item");
+                    std::mem::swap(item,min_right_item);
+                    min_right.pop_sorted()
                 }
             }
         }
@@ -597,15 +581,30 @@ mod test {
         assert_eq!(t.pop(),None);
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn remove_sorted_test() {
+        use rand::thread_rng;
+        use rand::seq::SliceRandom;
+
         let mut t = BinTree::empty();
-        t.extend_sorted_unique(vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2]);
-        assert_eq!(t.to_string(),"((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)");
-        for i in t.to_vec() {
+        let mut v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
+        v.shuffle(&mut thread_rng());
+        t.extend_sorted_unique(v);
+        let mut v = t.to_vec();
+        v.shuffle(&mut thread_rng());
+        for i in v {
             assert_eq!(t.remove_sorted(&i),true);
         }
         assert_eq!(t.to_string(),"()");
+    }
+
+    #[cfg(feature = "rand")]
+    #[test]
+    fn remove_sorted_test_10000() {
+        for _ in 0..10000 {
+            remove_sorted_test();
+        }
     }
 
     #[test]

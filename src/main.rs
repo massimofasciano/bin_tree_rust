@@ -72,14 +72,9 @@ fn main() {
     // 1 2 1 4 2 5
 
     let mut t = BinTree::empty();
-    t.extend_sorted_unique(vec![4,5,7,6,3,1,2]);
-    // t.extend_sorted_unique(vec![3,1,2]);
-    println!("{:?}",t.min_mut());
-    println!("{:?}",t.max_mut());
-    println!("{:?}",t.min());
-    println!("{:?}",t.max());
-    println!("{}",t);
-    t.remove_sorted(&5);
-    // t.pop_sorted();
-    println!("{}",t);
+    t.extend_sorted_unique(vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2]);
+    assert_eq!(t.to_string(),"((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)");
+    for i in t.to_vec() {
+        println!("assert_eq!(t.remove_sorted(&{}),true);",i);
+    }
 }
