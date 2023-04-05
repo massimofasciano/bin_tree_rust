@@ -119,5 +119,7 @@ mod test {
         assert_eq!(s.to_string(),"()");
         s.extend(TEST_STR.chars());
         assert_eq!(s.to_string(),str1);
+        let str2 = s.iter().collect::<String>();
+        assert_eq!(str2," !,HJaeilmnosy");
     }
 }
