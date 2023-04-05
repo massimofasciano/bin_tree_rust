@@ -45,7 +45,7 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
     pub fn inner(&self) -> &BinTree<Item> {
         &self.data
     }
-    pub fn to_tree_string(&self) -> String where Item : std::fmt::Display {
+    pub fn to_tree_string(&self) -> String where Item : std::fmt::Debug {
         format!("{}",self.inner())
     }
 }
@@ -123,7 +123,8 @@ mod test {
 
     #[test]
     fn test_basic() {
-        let str1 = "(((  => (!)) <= ,) <= H => (((J) <= a) <= e => ((i) <= l => ((m => (n)) <= o => ((s) <= y)))))";
+        let str1 = "(((' ' => ('!')) <= ',') <= 'H' => ((('J') <= 'a') <= \
+            'e' => (('i') <= 'l' => (('m' => ('n')) <= 'o' => (('s') <= 'y')))))";
         let mut s = OrderedSetBinTree::new();
         TEST_STR.chars().for_each(|c| s.insert(c));
         assert_eq!(s.to_tree_string(),str1);

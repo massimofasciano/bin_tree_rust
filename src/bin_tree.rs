@@ -99,7 +99,7 @@ impl<Item> Default for BinTree<Item> {
     }
 }
 
-impl<Item : std::fmt::Display> std::fmt::Display for BinTree<Item> {
+impl<Item : std::fmt::Debug> std::fmt::Display for BinTree<Item> {
     /// display a tree (on one line)
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.write_line(f)
@@ -109,7 +109,7 @@ impl<Item : std::fmt::Display> std::fmt::Display for BinTree<Item> {
 impl<Item> BinTree<Item> {
     /// display a tree on a single line with arrows indicating branches
     pub fn write_line(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
-        where Item : std::fmt::Display 
+        where Item : std::fmt::Debug 
     {
         match self {
             Self::Empty => { 
@@ -121,7 +121,7 @@ impl<Item> BinTree<Item> {
                     left.write_line(f)?;
                     write!(f," <= ")?;
                 }
-                write!(f,"{}",item)?;
+                write!(f,"{:?}",item)?;
                 if !right.is_empty() {
                     write!(f," => ")?;
                     right.write_line(f)?;
@@ -132,12 +132,12 @@ impl<Item> BinTree<Item> {
     }
     /// display a tree on multiple lines with a configurable tab (indent)
     pub fn pretty_write(&self, f: &mut std::fmt::Formatter<'_>, tab: &str) -> std::fmt::Result
-        where Item : std::fmt::Display 
+        where Item : std::fmt::Debug 
     {
         self.pretty_write_indent(f, tab, 0)
     }
     fn pretty_write_indent(&self, f: &mut std::fmt::Formatter<'_>, tab : &str, indent : usize) -> std::fmt::Result
-        where Item : std::fmt::Display 
+        where Item : std::fmt::Debug 
     {
         match self {
             Self::Empty => { 
@@ -145,7 +145,7 @@ impl<Item> BinTree<Item> {
             },
             Self::Branch(item, left, right) => {
                 right.pretty_write_indent(f, tab, indent+1)?;
-                write!(f,"{}{}\n",tab.repeat(indent),item)?;
+                write!(f,"{}{:?}\n",tab.repeat(indent),item)?;
                 left.pretty_write_indent(f, tab, indent+1)
             }
         }        
@@ -164,7 +164,7 @@ pub struct FormattedBinTree<'a, T> {
     format: FormattedBinTreeType<'a>,
 }
 
-impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedBinTree<'a,T> {
+impl<'a,T : std::fmt::Debug> std::fmt::Display for FormattedBinTree<'a,T> {
     /// display a formatted tree according to the internal format field
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.format {
