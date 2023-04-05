@@ -3,6 +3,9 @@ use std::ops::Deref;
 pub mod iter_deque;
 pub use iter_deque::*;
 
+pub mod ordered_set;
+pub use ordered_set::*;
+
 #[derive(Debug,Clone,PartialEq)]
 pub enum BinTree<Item> {
     Empty,
@@ -310,19 +313,6 @@ impl<Item> BinTree<Item> {
             }
         }
     }
-    pub fn min_mut(&mut self) -> Option<&mut Item> where Item : PartialOrd {
-        // assumes that the tree is sorted
-        match self {
-            Self::Branch(item, left, _right) => {
-                if left.is_empty() {
-                    Some(item)
-                } else {
-                    left.min_mut()
-                }
-            },
-            Self::Empty => None,
-        }
-    }
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
     fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
@@ -392,6 +382,22 @@ impl<Item> BinTree<Item> {
                     right.remove_sorted(value)
                 } else {
                     self.pop_sorted();
+                    true
+                }
+            }
+        }
+    }
+    pub fn contains_sorted(&self, value : &Item) -> bool where Item : PartialOrd {
+        match self {
+            Self::Empty => {
+                false
+            },
+            Self::Branch(item, left, right) => {
+                if *value < *item {
+                    left.contains_sorted(value)
+                } else if *value > *item {
+                    right.contains_sorted(value)
+                } else {
                     true
                 }
             }
@@ -590,7 +596,7 @@ mod test {
         let mut t = BinTree::empty();
         let mut v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
         v.shuffle(&mut thread_rng());
-        t.extend_sorted_unique(v);
+        t.extend_sorted(v);
         let mut v = t.to_vec();
         v.shuffle(&mut thread_rng());
         for i in v {
