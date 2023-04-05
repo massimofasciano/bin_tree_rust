@@ -441,6 +441,7 @@ impl<Item> BinTree<Item> {
 }
 
 impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
+    /// extend a tree using the default push method (ordered)
     fn extend<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
         for elem in iter {
             self.push(elem);
@@ -449,6 +450,7 @@ impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
 }
 
 impl<Item : PartialOrd> FromIterator<Item> for BinTree<Item> {
+    /// create a sorted tree from an iterator
     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
         let mut t = Self::empty();
         t.extend_sorted(iter);
@@ -456,8 +458,7 @@ impl<Item : PartialOrd> FromIterator<Item> for BinTree<Item> {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
+/// some tests
 #[cfg(test)]
 mod test {
     use crate::{BinTree, tree, leaf};
