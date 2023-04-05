@@ -33,6 +33,17 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
     pub fn iter_mut(&mut self) -> BinTreeIterMut<Item> {
         self.data.iter_mut()
     }
+    pub fn into_inner(self) -> BinTree<Item> {
+        self.data
+    }
+}
+
+impl<Item: PartialOrd> Extend<Item> for OrderedSetBinTree<Item> {
+    fn extend<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
+        for elem in iter {
+            self.insert(elem);
+        }
+    }
 }
 
 impl<Item : PartialOrd + std::fmt::Display> std::fmt::Display for OrderedSetBinTree<Item> {
@@ -43,9 +54,9 @@ impl<Item : PartialOrd + std::fmt::Display> std::fmt::Display for OrderedSetBinT
 
 impl<Item : PartialOrd> FromIterator<Item> for OrderedSetBinTree<Item> {
     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
-        Self {
-            data: BinTree::from_iter(iter)
-        }
+        let mut s = Self::default();
+        iter.into_iter().for_each(|e| s.insert(e));
+        s
     }
 }
 
@@ -58,25 +69,55 @@ impl<T : PartialOrd> IntoIterator for OrderedSetBinTree<T> {
     }
 }
 
-impl<Item : PartialOrd + Clone> PartialEq for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> PartialEq for OrderedSetBinTree<Item> {
     fn eq(&self, other: &Self) -> bool {
         self.iter().all(|e| other.contains(e)) &&
         other.iter().all(|e| self.contains(e))
     }
 }
 
+impl<Item : PartialOrd> From<BinTree<Item>> for OrderedSetBinTree<Item> {
+    fn from(value: BinTree<Item>) -> Self {
+        Self::from_iter(value.into_iter())
+    }
+}
+
+impl<Item : PartialOrd> From<Vec<Item>> for OrderedSetBinTree<Item> {
+    fn from(value: Vec<Item>) -> Self {
+        Self::from_iter(value.into_iter())
+    }
+}
+
+impl<Item : PartialOrd> Into<BinTree<Item>> for OrderedSetBinTree<Item> {
+    fn into(self) -> BinTree<Item> {
+        self.into_inner()
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::OrderedSetBinTree;
+    use crate::{OrderedSetBinTree, BinTree};
+
+    static TEST_STR : &str = "Hello, my name is Joe!";
 
     #[test]
     fn test_basic() {
+        let str1 = "(((  => (!)) <= ,) <= H => (((J) <= a) <= e => ((i) <= l => ((m => (n)) <= o => ((s) <= y)))))";
         let mut s = OrderedSetBinTree::new();
-        "Hello, my name is Joe!".chars().for_each(|c| s.insert(c));
-        assert_eq!(s.to_string(),"(((  => (!)) <= ,) <= H => (((J) <= a) <= e => ((i) <= l => ((m => (n)) <= o => ((s) <= y)))))");
-        let s2 = "Hello, my name is Joe!".chars().collect::<OrderedSetBinTree<_>>();
+        TEST_STR.chars().for_each(|c| s.insert(c));
+        assert_eq!(s.to_string(),str1);
+        let s2 = TEST_STR.chars().collect::<OrderedSetBinTree<_>>();
+        assert_eq!(s2.to_string(),str1);
         assert_eq!(s,s2);
-        "Hello, my name is Joe!".chars().for_each(|c| s.remove(&c));
+        let s3 = OrderedSetBinTree::from(TEST_STR.chars().collect::<Vec<_>>());
+        assert_eq!(s3.to_string(),str1);
+        assert_eq!(s3,s2);
+        let s4 = OrderedSetBinTree::from(TEST_STR.chars().collect::<BinTree<_>>());
+        assert_eq!(s4.to_string(),"(  => (! => (, => (H => (J => (a => (e => (i => (l => (m => (n => (o => (s => (y))))))))))))))");
+        assert_eq!(s3,s4);
+        TEST_STR.chars().for_each(|c| s.remove(&c));
         assert_eq!(s.to_string(),"()");
+        s.extend(TEST_STR.chars());
+        assert_eq!(s.to_string(),str1);
     }
 }
