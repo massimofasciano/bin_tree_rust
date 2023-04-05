@@ -310,12 +310,49 @@ impl<Item> BinTree<Item> {
             }
         }
     }
-    pub fn min_branch_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+    pub fn min(&self) -> Option<&Item> where Item : PartialOrd {
+        // assumes that the tree is sorted
         if self.is_branch() {
             if self.left().unwrap().is_empty() {
-                Some(self)
+                self.item()
             } else {
-                self.left_mut().unwrap().min_branch_mut()
+                self.left().unwrap().min()
+            }
+        } else {
+            None
+        }
+    }
+    pub fn max(&self) -> Option<&Item> where Item : PartialOrd {
+        // assumes that the tree is sorted
+        if self.is_branch() {
+            if self.right().unwrap().is_empty() {
+                self.item()
+            } else {
+                self.right().unwrap().max()
+            }
+        } else {
+            None
+        }
+    }
+    pub fn min_mut(&mut self) -> Option<&mut Item> where Item : PartialOrd {
+        // assumes that the tree is sorted
+        if self.is_branch() {
+            if self.left().unwrap().is_empty() {
+                self.item_mut()
+            } else {
+                self.left_mut().unwrap().min_mut()
+            }
+        } else {
+            None
+        }
+    }
+    pub fn max_mut(&mut self) -> Option<&mut Item> where Item : PartialOrd {
+        // assumes that the tree is sorted
+        if self.is_branch() {
+            if self.right().unwrap().is_empty() {
+                self.item_mut()
+            } else {
+                self.right_mut().unwrap().max_mut()
             }
         } else {
             None
@@ -352,9 +389,8 @@ impl<Item> BinTree<Item> {
                     *self = *right;
                     Some(it)
                 } else {
-                    let min_right = right.min_branch_mut().unwrap();
-                    let min_right_item = min_right.item_mut().unwrap();
-                    std::mem::swap(item,min_right_item);
+                    let min_right = right.min_mut().unwrap();
+                    std::mem::swap(item,min_right);
                     right.pop_sorted()
                 }
             }
