@@ -1,4 +1,4 @@
-use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf};
+use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf, BinTree};
 
 fn main() {
     let mut t = 
@@ -70,4 +70,13 @@ fn main() {
     }
     println!("");
     // 1 2 1 4 2 5
+
+    let mut t = BinTree::empty();
+    t.extend_sorted_unique(vec![4,5,7,6,3,1,2]);
+    // t.extend_sorted_unique(vec![3,1,2]);
+    println!("{:?}",t.right_mut().unwrap().min_branch_mut());
+    println!("{}",t);
+    t.remove_sorted(&5);
+    // t.pop_sorted();
+    println!("{}",t);
 }

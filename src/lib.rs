@@ -38,6 +38,48 @@ impl<Item> BinTree<Item> {
             _ => false,
         }
     }
+    pub fn item(&self) -> Option<&Item> {
+        match self {
+            Self::Branch(item,_,_) => 
+                Some(item),
+            _ => None,
+        }
+    }
+    pub fn left(&self) -> Option<&BinTree<Item>> {
+        match self {
+            Self::Branch(_,left,_) => 
+                Some(left.as_ref()),
+            _ => None,
+        }
+    }
+    pub fn right(&self) -> Option<&BinTree<Item>> {
+        match self {
+            Self::Branch(_,_,right) => 
+                Some(right.as_ref()),
+            _ => None,
+        }
+    }
+    pub fn item_mut(&mut self) -> Option<&mut Item> {
+        match self {
+            Self::Branch(item,_,_) => 
+                Some(item),
+            _ => None,
+        }
+    }
+    pub fn left_mut(&mut self) -> Option<&mut BinTree<Item>> {
+        match self {
+            Self::Branch(_,left,_) => 
+                Some(left.as_mut()),
+            _ => None,
+        }
+    }
+    pub fn right_mut(&mut self) -> Option<&mut BinTree<Item>> {
+        match self {
+            Self::Branch(_,_,right) => 
+                Some(right.as_mut()),
+            _ => None,
+        }
+    }
 }
 
 impl<Item> Default for BinTree<Item> {
@@ -168,6 +210,7 @@ impl<Item> BinTree<Item> {
         self.push_sorted(new_item);
     }
     pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
+        // assumes that the BinTree is sorted (or empty)
         match self {
             Self::Empty => {
                 *self = Self::leaf(new_item)
@@ -182,8 +225,30 @@ impl<Item> BinTree<Item> {
         };
     }
     pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
+        // assumes that the BinTree is sorted (or empty)
         for elem in iter {
             self.push_sorted(elem);
+        }
+    }
+    pub fn push_sorted_unique(&mut self, new_item : Item) where Item : PartialOrd {
+        // assumes that the BinTree is sorted and contains no duplicates (or is empty)
+        match self {
+            Self::Empty => {
+                *self = Self::leaf(new_item)
+            },
+            Self::Branch(item, left, right) => {
+                if new_item < *item {
+                    left.push_sorted_unique(new_item);
+                } else if new_item > *item {
+                    right.push_sorted_unique(new_item);
+                }
+            }
+        };
+    }
+    pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
+        // assumes that the BinTree is sorted and contains no duplicates (or is empty)
+        for elem in iter {
+            self.push_sorted_unique(elem);
         }
     }
     pub fn push_right(&mut self, new_item : Item) {
@@ -216,6 +281,102 @@ impl<Item> BinTree<Item> {
             self.push_left(elem);
         }
     }
+    pub fn pop(&mut self) -> Option<Item> {
+        match self {
+            Self::Empty => {
+                None
+            },
+            Self::Branch(item, left, right) => {
+                let mut p;
+                p = left.pop();
+                if p.is_none() {
+                    p = right.pop();
+                }
+                Some(match p {
+                    None => {
+                        // We use unsafe to replace item with an uninit value.
+                        // This is safe because we destroy self right after so this value is never read.
+                        // It allows us to take Item without needing Item to implement Default.
+                        let it = std::mem::replace(item, unsafe { 
+                            std::mem::MaybeUninit::uninit().assume_init() 
+                        });
+                        *self = Self::empty();
+                        it
+                    },
+                    Some(it) => {
+                        std::mem::replace(item, it)
+                    },
+                })
+            }
+        }
+    }
+    pub fn min_branch_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+        if self.is_branch() {
+            if self.left().unwrap().is_empty() {
+                Some(self)
+            } else {
+                self.left_mut().unwrap().min_branch_mut()
+            }
+        } else {
+            None
+        }
+    }
+    pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
+        match self {
+            Self::Empty => {
+                None
+            },
+            // When we use unsafe to replace the item with an uninit value,
+            // we always destroy the current node by assigning to *self
+            // so the uninitialized value is never read.
+            // It allows us to take Item without needing Item to implement Default.
+            Self::Branch(item, left, right) => {
+                if left.is_empty() && right.is_empty() {
+                    let it = std::mem::replace(item, unsafe { 
+                        std::mem::MaybeUninit::uninit().assume_init() 
+                    });
+                    *self = Self::empty();
+                    Some(it)
+                } else if right.is_empty() {
+                    let it = std::mem::replace(item, unsafe { 
+                        std::mem::MaybeUninit::uninit().assume_init() 
+                    });
+                    let left = std::mem::take(left);
+                    *self = *left;
+                    Some(it)
+                } else if left.is_empty() {
+                    let it = std::mem::replace(item, unsafe { 
+                        std::mem::MaybeUninit::uninit().assume_init() 
+                    });
+                    let right = std::mem::take(right);
+                    *self = *right;
+                    Some(it)
+                } else {
+                    let min_right = right.min_branch_mut().unwrap();
+                    let min_right_item = min_right.item_mut().unwrap();
+                    std::mem::swap(item,min_right_item);
+                    right.pop_sorted()
+                }
+            }
+        }
+    }
+    pub fn remove_sorted(&mut self, value : &Item) -> bool where Item : PartialOrd {
+        match self {
+            Self::Empty => {
+                false
+            },
+            Self::Branch(item, left, right) => {
+                if *value < *item {
+                    left.remove_sorted(value)
+                } else if *value > *item {
+                    right.remove_sorted(value)
+                } else {
+                    self.pop_sorted();
+                    true
+                }
+            }
+        }
+    }
 }
 
 impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
@@ -223,6 +384,14 @@ impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
         for elem in iter {
             self.push(elem);
         }
+    }
+}
+
+impl<Item : PartialOrd> FromIterator<Item> for BinTree<Item> {
+    fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
+        let mut t = Self::empty();
+        t.extend_sorted(iter);
+        t
     }
 }
 
@@ -318,13 +487,29 @@ mod test {
     #[test]
     fn push_sorted_test() {
         let mut t = BinTree::empty();
-        t.push(4);
-        t.push(2);
-        t.push(8);
-        t.push(1);
+        t.push_sorted(4);
+        t.push_sorted(2);
+        t.push_sorted(8);
+        t.push_sorted(1);
+        t.push_sorted(2);
+        assert_eq!(t.to_string(),"(((1) <= 2 => (2)) <= 4 => (8))");
+        assert_eq!(t.to_vec(),vec![1,2,2,4,8]);
+        t.extend_sorted(vec![18,6,3,8,5,11]);
+        assert_eq!(t.to_string(),"(((1) <= 2 => (2 => (3))) <= 4 => (((5) <= 6) <= 8 => ((8 => (11)) <= 18)))");
+        assert_eq!(t.to_vec(),vec![1,2,2,3,4,5,6,8,8,11,18]);
+    }
+
+    #[test]
+    fn push_sorted_unique_test() {
+        let mut t = BinTree::empty();
+        t.push_sorted_unique(4);
+        t.push_sorted_unique(2);
+        t.push_sorted_unique(8);
+        t.push_sorted_unique(1);
+        t.push_sorted_unique(2);
         assert_eq!(t.to_string(),"(((1) <= 2) <= 4 => (8))");
         assert_eq!(t.to_vec(),vec![1,2,4,8]);
-        t.extend(vec![18,6,3,5,11]);
+        t.extend_sorted_unique(vec![18,6,3,8,5,11]);
         assert_eq!(t.to_string(),"(((1) <= 2 => (3)) <= 4 => (((5) <= 6) <= 8 => ((11) <= 18)))");
         assert_eq!(t.to_vec(),vec![1,2,3,4,5,6,8,11,18]);
     }
@@ -355,6 +540,44 @@ mod test {
         t.extend_left(vec![18,6,3,5,11]);
         assert_eq!(t.to_string(),"(((((((((11) <= 5) <= 3) <= 6) <= 18) <= 1) <= 8) <= 2) <= 4)");
         assert_eq!(t.to_vec(),vec![11,5,3,6,18,1,8,2,4]);
+    }
+
+    #[test]
+    fn pop_test() {
+        let mut t = test_tree();
+        assert_eq!(t.to_string(),"(((3) <= 2) <= 1 => (4 => ((6) <= 5)))");
+        assert_eq!(t.pop(),Some(1));
+        assert_eq!(t.to_string(),"((3) <= 2 => (4 => ((6) <= 5)))");
+        assert_eq!(t.pop(),Some(2));
+        assert_eq!(t.to_string(),"(3 => (4 => ((6) <= 5)))");
+        assert_eq!(t.pop(),Some(3));
+        assert_eq!(t.to_string(),"(4 => (5 => (6)))");
+        assert_eq!(t.pop(),Some(4));
+        assert_eq!(t.to_string(),"(5 => (6))");
+        assert_eq!(t.pop(),Some(5));
+        assert_eq!(t.to_string(),"(6)");
+        assert_eq!(t.pop(),Some(6));
+        assert_eq!(t.to_string(),"()");
+        assert_eq!(t.pop(),None);
+    }
+
+    #[test]
+    fn remove_sorted_test() {
+        let mut t = BinTree::empty();
+        t.extend_sorted_unique(vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2]);
+        assert_eq!(t.to_string(),"((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)");
+        for i in t.to_vec() {
+            assert_eq!(t.remove_sorted(&i),true);
+        }
+        assert_eq!(t.to_string(),"()");
+    }
+
+    #[test]
+    fn collect_test() {
+        let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
+        let t = v.into_iter().collect::<BinTree<_>>();
+        assert_eq!(t.to_string(),
+            "((((1 => (2 => (2))) <= 3 => ((3 => (3 => (3))) <= 5 => (5))) <= 6 => (((6) <= 7) <= 8 => ((8 => ((9) <= 10)) <= 11))) <= 18)");
     }
 
 }
