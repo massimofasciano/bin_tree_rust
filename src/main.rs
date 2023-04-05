@@ -70,11 +70,4 @@ fn main() {
     }
     println!("");
     // 1 2 1 4 2 5
-
-    let mut t = BinTree::empty();
-    t.extend_sorted_unique(vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2]);
-    assert_eq!(t.to_string(),"((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)");
-    for i in t.to_vec() {
-        println!("assert_eq!(t.remove_sorted(&{}),true);",i);
-    }
 }
