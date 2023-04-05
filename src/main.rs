@@ -1,4 +1,4 @@
-use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf, BinTree};
+use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf};
 
 fn main() {
     let mut t = 
