@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+/// a general purpose binary tree
 #[derive(Debug,Clone,PartialEq)]
 pub enum BinTree<Item> {
     Empty,
@@ -7,21 +8,26 @@ pub enum BinTree<Item> {
 }
 
 impl<Item> BinTree<Item> {
+    /// creates a branch
     pub fn branch(item : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
         Self::Branch(item, Box::new(left), Box::new(right))
     }
+    /// creates a leaf
     pub fn leaf(item : Item) -> Self {
         Self::branch(item, Self::empty(), Self::empty())
     }
+    /// creates an empty tree
     pub fn empty() -> Self {
         Self::Empty
     }
+    /// tests if tree is a branch (leaf is excluded although it is stored as a branch with empy children internally)
     pub fn is_branch(&self) -> bool {
         match self {
             Self::Branch(_,_,_) => !self.is_leaf(),
             _ => false,
         }
     }
+    /// tests if tree is a leaf (leaf is stored as a branch with empy children internally)
     pub fn is_leaf(&self) -> bool {
         match self {
             Self::Branch(_,left,right) => 
@@ -29,12 +35,14 @@ impl<Item> BinTree<Item> {
             _ => false,
         }
     }
+    /// tests if tree is empty
     pub fn is_empty(&self) -> bool {
         match self {
             Self::Empty => true,
             _ => false,
         }
     }
+    /// returns a ref to the item at the top of the tree
     pub fn item(&self) -> Option<&Item> {
         match self {
             Self::Branch(item,_,_) => 
@@ -42,6 +50,7 @@ impl<Item> BinTree<Item> {
             _ => None,
         }
     }
+    /// returns the left branch of the tree
     pub fn left(&self) -> Option<&BinTree<Item>> {
         match self {
             Self::Branch(_,left,_) => 
@@ -49,6 +58,7 @@ impl<Item> BinTree<Item> {
             _ => None,
         }
     }
+    /// returns the right branch of the tree
     pub fn right(&self) -> Option<&BinTree<Item>> {
         match self {
             Self::Branch(_,_,right) => 
@@ -56,6 +66,7 @@ impl<Item> BinTree<Item> {
             _ => None,
         }
     }
+    /// returns a mutable ref to the item at the top of the tree
     pub fn item_mut(&mut self) -> Option<&mut Item> {
         match self {
             Self::Branch(item,_,_) => 
@@ -63,6 +74,7 @@ impl<Item> BinTree<Item> {
             _ => None,
         }
     }
+    /// returns a mutable ref to the left branch of the tree
     pub fn left_mut(&mut self) -> Option<&mut BinTree<Item>> {
         match self {
             Self::Branch(_,left,_) => 
@@ -70,6 +82,7 @@ impl<Item> BinTree<Item> {
             _ => None,
         }
     }
+    /// returns a mutable ref to the right branch of the tree
     pub fn right_mut(&mut self) -> Option<&mut BinTree<Item>> {
         match self {
             Self::Branch(_,_,right) => 
@@ -80,20 +93,21 @@ impl<Item> BinTree<Item> {
 }
 
 impl<Item> Default for BinTree<Item> {
+    /// default is an empty tree
     fn default() -> Self {
         Self::empty()
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 impl<Item : std::fmt::Display> std::fmt::Display for BinTree<Item> {
+    /// display a tree (on one line)
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.write_line(f)
     }
 }
 
 impl<Item> BinTree<Item> {
+    /// display a tree on a single line with arrows indicating branches
     pub fn write_line(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
         where Item : std::fmt::Display 
     {
@@ -116,6 +130,7 @@ impl<Item> BinTree<Item> {
             }
         }        
     }
+    /// display a tree on multiple lines with a configurable tab (indent)
     pub fn pretty_write(&self, f: &mut std::fmt::Formatter<'_>, tab: &str) -> std::fmt::Result
         where Item : std::fmt::Display 
     {
@@ -137,17 +152,20 @@ impl<Item> BinTree<Item> {
     }
 }
 
+/// different kinds of formatting for the tree
 pub enum FormattedBinTreeType<'a> {
     PrettyIndent(&'a str),
     Line,
 }
 
+/// a container for a formatted tree
 pub struct FormattedBinTree<'a, T> {
     inner: &'a BinTree<T>,
     format: FormattedBinTreeType<'a>,
 }
 
 impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedBinTree<'a,T> {
+    /// display a formatted tree according to the internal format field
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.format {
             FormattedBinTreeType::Line => self.inner.write_line(f),
@@ -157,6 +175,7 @@ impl<'a,T : std::fmt::Display> std::fmt::Display for FormattedBinTree<'a,T> {
 }
 
 impl<'a,T> FormattedBinTree<'a,T> {
+    /// associate a BinTree with a format
     pub fn new(t : &'a BinTree<T>, fmt: FormattedBinTreeType<'a>) -> Self {
         Self { inner: t, format: fmt }
     }
@@ -165,49 +184,50 @@ impl<'a,T> FormattedBinTree<'a,T> {
 impl<'a,T > Deref for FormattedBinTree<'a,T> {
     type Target = BinTree<T>;
 
+    /// returns a ref to the inner tree
     fn deref(&self) -> &Self::Target {
         self.inner
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 impl<T> From<()> for BinTree<T> {
+    /// build an empty tree from the empty type
     fn from(_: ()) -> Self {
         Self::empty()
     }
 }
 
+/// convenient function to construct a tree from item and branches
 pub fn tree<T>(item: T, left: impl Into<BinTree<T>>, right: impl Into<BinTree<T>>) -> BinTree<T> {
     BinTree::branch(item, left.into(), right.into())
 }
 
+/// convenient function to construct a tree leaf from item
 pub fn leaf<T>(item: T) -> BinTree<T> {
     BinTree::leaf(item)
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 impl<Item> BinTree<Item> {
+    /// clone the contents of a tree into a vec (using default iter)
     pub fn to_vec(&self) -> Vec<Item> where Item : Clone {
         self.iter().map(|e|e.clone()).collect()
     }
 }
 
 impl<Item> Into<Vec<Item>> for BinTree<Item> {
+    /// transform the tree into a vec (using default into_iter)
     fn into(self) -> Vec<Item> {
         self.into_iter().collect()
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 impl<Item> BinTree<Item> {
+    /// default push method (uses push_sorted)
     pub fn push(&mut self, new_item : Item) where Item : PartialOrd {
         self.push_sorted(new_item);
     }
+    /// push onto a sorted or empty tree and keeps order property
     pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
-        // assumes that the BinTree is sorted (or empty)
         match self {
             Self::Empty => {
                 *self = Self::leaf(new_item)
@@ -221,14 +241,14 @@ impl<Item> BinTree<Item> {
             }
         };
     }
+    /// extend a sorted or empty tree and keeps order property
     pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
-        // assumes that the BinTree is sorted (or empty)
         for elem in iter {
             self.push_sorted(elem);
         }
     }
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties
     pub fn push_sorted_unique(&mut self, new_item : Item) where Item : PartialOrd {
-        // assumes that the BinTree is sorted and contains no duplicates (or is empty)
         match self {
             Self::Empty => {
                 *self = Self::leaf(new_item)
@@ -242,12 +262,13 @@ impl<Item> BinTree<Item> {
             }
         };
     }
+    /// extend a sorted or empty tree with no duplicates and keeps both properties
     pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
-        // assumes that the BinTree is sorted and contains no duplicates (or is empty)
         for elem in iter {
             self.push_sorted_unique(elem);
         }
     }
+    /// push to the right branch of a tree (linear tree)
     pub fn push_right(&mut self, new_item : Item) {
         match self {
             Self::Empty => {
@@ -258,11 +279,13 @@ impl<Item> BinTree<Item> {
             }
         };
     }
+    /// extend to the right branch of a tree (linear tree)
     pub fn extend_right<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
         for elem in iter {
             self.push_right(elem);
         }
     }
+    /// push to the left branch of a tree (linear tree)
     pub fn push_left(&mut self, new_item : Item) {
         match self {
             Self::Empty => {
@@ -273,11 +296,13 @@ impl<Item> BinTree<Item> {
             }
         };
     }
+    /// extend to the left branch of a tree (linear tree)
     pub fn extend_left<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
         for elem in iter {
             self.push_left(elem);
         }
     }
+    /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
         match self {
             Self::Empty => {
@@ -325,6 +350,7 @@ impl<Item> BinTree<Item> {
             None
         }
     }
+    /// pop the top value from a sorted tree and preserves order
     pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
         match self {
             Self::Empty => {
@@ -364,6 +390,7 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+    /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, value : &Item) -> bool where Item : PartialOrd {
         match self {
             Self::Empty => {
@@ -381,6 +408,7 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+    /// find a value in a sorted tree
     pub fn contains_sorted(&self, value : &Item) -> bool where Item : PartialOrd {
         match self {
             Self::Empty => {
@@ -394,6 +422,19 @@ impl<Item> BinTree<Item> {
                 } else {
                     true
                 }
+            }
+        }
+    }
+    /// find a value in a tree (no ordering assumed)
+    pub fn contains(&self, value : &Item) -> bool where Item : PartialEq {
+        match self {
+            Self::Empty => {
+                false
+            },
+            Self::Branch(item, left, right) => {
+                value == item || 
+                left.contains(value) || 
+                right.contains(value)
             }
         }
     }
