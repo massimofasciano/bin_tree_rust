@@ -77,3 +77,53 @@ fn main() {
     // 1 2 1 4 2 5
 }
 ```
+
+An excerpt of the implementation of the mutable iterator:
+
+```rust
+impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
+    type Item = &'a mut T;
+
+    /// a deque is used to push and pop from both ends according to the specified traversal behavior
+    fn next(&mut self) -> Option<Self::Item> {
+        let pop = match self.traversal {
+            DepthFirst(_) => self.data.pop_back(),
+            BreadthFirst => self.data.pop_front(),
+        };
+        match pop {
+            None => None,
+            Some(BinTreeIterMutDataItem::Item(item)) => Some(item),
+            Some(BinTreeIterMutDataItem::Tree(BinTree::Empty)) => self.next(),
+            Some(BinTreeIterMutDataItem::Tree(BinTree::Branch(item, left, right))) => {
+                match self.traversal {
+                    DepthFirst(InOrder) => {
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.next()
+                    },
+                    DepthFirst(PreOrder) => {
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.next()
+                    },
+                    DepthFirst(PostOrder) => {
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.next()
+
+                    },
+                    BreadthFirst => {
+                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
+                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
+                        self.next()
+                    },
+                }
+            }
+        }
+    }
+}
+```
