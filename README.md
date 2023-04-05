@@ -3,7 +3,7 @@
 A small Rust project that illustrates iteration using a simple binary tree
 
 ```rust
-use test_iterators::{FormattedTree, FormattedTreeType, tree, leaf};
+use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree};
 
 fn main() {
     let mut t = 
@@ -22,7 +22,7 @@ fn main() {
     println!("{}",t);
     // (((3) <= 2) <= 1 => (4 => ((6) <= 5)))
 
-    let ft = FormattedTree::new(&t,FormattedTreeType::PrettyIndent("--"));
+    let ft = FormattedBinTree::new(&t,FormattedBinTreeType::PrettyIndent("--"));
     println!("{}", ft);
     // ------@  
     // ----5    
@@ -37,6 +37,13 @@ fn main() {
     // ------@
     // ----3
     // ------@
+
+    println!("{}",t.contains_sorted(&2));
+    // false (because the tree is not sorted)
+    println!("{}",t.contains(&2));
+    // true
+    println!("{}",t.contains_sorted(&5));
+    // true (happy accident: tree is partially sorted to the right)
 
     for i in t.iter() {
         print!("{} ",i)
@@ -71,10 +78,25 @@ fn main() {
     // 5
 
     for i in t {
-        print!("{} ",i)
+        print!("{} ",i);
     }
     println!("");
     // 1 2 1 4 2 5
+
+    let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
+    let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();
+    println!("{:?}",t.inner().to_vec());
+    // [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]
+    println!("{}",t.contains(&2));
+    // true
+    println!("{}",t.contains(&10));
+    // true
+    println!("{}",t.contains(&4));
+    // false
+    println!("{}",t.remove(&7));
+    // true
+    println!("{:?}",t.inner().to_vec());
+    // [1, 2, 3, 5, 6, 8, 9, 10, 11, 18]
 }
 ```
 

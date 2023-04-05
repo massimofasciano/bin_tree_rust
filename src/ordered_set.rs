@@ -26,8 +26,8 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
         self.data.push_sorted_unique(value);
     }
     /// remove from set (uses remove_sorted tree method)
-    pub fn remove(&mut self, value : &Item) {
-        self.data.remove_sorted(value);
+    pub fn remove(&mut self, value : &Item) -> bool {
+        self.data.remove_sorted(value)
     }
     /// find a value in the set (uses contains_sorted tree method)
     pub fn contains(&self, value : &Item) -> bool {
@@ -45,6 +45,9 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
     pub fn inner(&self) -> &BinTree<Item> {
         &self.data
     }
+    pub fn to_tree_string(&self) -> String where Item : std::fmt::Display {
+        format!("{}",self.inner())
+    }
 }
 
 impl<Item: PartialOrd> Extend<Item> for OrderedSetBinTree<Item> {
@@ -56,10 +59,10 @@ impl<Item: PartialOrd> Extend<Item> for OrderedSetBinTree<Item> {
     }
 }
 
-impl<Item : PartialOrd + std::fmt::Display> std::fmt::Display for OrderedSetBinTree<Item> {
-    /// display a set using the inner tree display method
+impl<Item : PartialOrd + std::fmt::Debug> std::fmt::Display for OrderedSetBinTree<Item> {
+    /// display a set as a vector
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.data.fmt(f)
+        write!(f,"{:?}",self.data.iter().collect::<Vec<_>>())
     }
 }
 
@@ -123,20 +126,20 @@ mod test {
         let str1 = "(((  => (!)) <= ,) <= H => (((J) <= a) <= e => ((i) <= l => ((m => (n)) <= o => ((s) <= y)))))";
         let mut s = OrderedSetBinTree::new();
         TEST_STR.chars().for_each(|c| s.insert(c));
-        assert_eq!(s.to_string(),str1);
+        assert_eq!(s.to_tree_string(),str1);
         let s2 = TEST_STR.chars().collect::<OrderedSetBinTree<_>>();
-        assert_eq!(s2.to_string(),str1);
+        assert_eq!(s2.to_tree_string(),str1);
         assert_eq!(s,s2);
         let s3 = OrderedSetBinTree::from(TEST_STR.chars().collect::<Vec<_>>());
-        assert_eq!(s3.to_string(),str1);
+        assert_eq!(s3.to_tree_string(),str1);
         assert_eq!(s3,s2);
         let s4 = OrderedSetBinTree::from(TEST_STR.chars().collect::<BinTree<_>>());
-        assert_eq!(s4.to_string(),"(  => (! => (, => (H => (J => (a => (e => (i => (l => (m => (n => (o => (s => (y))))))))))))))");
+        assert_eq!(s4.to_string(),"[' ', '!', ',', 'H', 'J', 'a', 'e', 'i', 'l', 'm', 'n', 'o', 's', 'y']");
         assert_eq!(s3,s4);
-        TEST_STR.chars().for_each(|c| s.remove(&c));
-        assert_eq!(s.to_string(),"()");
+        TEST_STR.chars().for_each(|c| { s.remove(&c); } );
+        assert_eq!(s.to_tree_string(),"()");
         s.extend(TEST_STR.chars());
-        assert_eq!(s.to_string(),str1);
+        assert_eq!(s.to_tree_string(),str1);
         let str2 = s.iter().collect::<String>();
         assert_eq!(str2," !,HJaeilmnosy");
     }
