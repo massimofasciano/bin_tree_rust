@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 /// a general purpose binary tree
 #[derive(Debug,Clone,PartialEq)]
+#[repr(transparent)]
 pub struct BinTree<Item> {
     root: Option<Box<BinTreeNode<Item>>>
 }
@@ -41,6 +42,15 @@ impl<Item> BinTree<Item> {
     /// tests if tree is empty
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
+    }
+    /// returns the 3 elements of the branch at the top of the tree (if not empty)
+    pub fn into_branch(self) -> Option<(Item,BinTree<Item>,BinTree<Item>)> {
+        if let Some(node) = self.root {
+            let BinTreeNode { value, left, right } = *node;
+            Some((value,left,right))
+        } else {
+            None
+        }
     }
     /// returns a ref to the 3 elements of the branch at the top of the tree (if not empty)
     pub fn branch(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
