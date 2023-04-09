@@ -1,4 +1,4 @@
-# test_iterators
+# bintree_iterators
 
 A small Rust project that illustrates iteration using a simple binary tree.
 
