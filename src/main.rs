@@ -80,7 +80,7 @@ fn main() {
 
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
     let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();
-    println!("{:?}",t.inner().to_vec());
+    println!("{}",t);
     // [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]
     println!("{}",t.contains(&2));
     // true
@@ -90,6 +90,6 @@ fn main() {
     // false
     println!("{}",t.remove(&7));
     // true
-    println!("{:?}",t.inner().to_vec());
+    println!("{}",t);
     // [1, 2, 3, 5, 6, 8, 9, 10, 11, 18]
 }
