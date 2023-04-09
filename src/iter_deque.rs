@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque};
 
 use crate::BinTree;
 
@@ -22,15 +22,9 @@ use DepthFirstOrder::*;
 // into_iter
 //
 
-/// deque items
-enum BinTreeIntoIterDataItem<T> {
-    Item(T),
-    Tree(BinTree<T>),
-}
-
 /// iterator struct using a deque
 pub struct BinTreeIntoIter<T> {
-    data: VecDeque<BinTreeIntoIterDataItem<T>>,
+    data: VecDeque<BinTree<T>>,
     traversal: BinTreeTraversal,
 }
 
@@ -47,7 +41,7 @@ impl<T> IntoIterator for BinTree<T> {
 impl<T> BinTree<T> {
     fn into_iter_traversal(self, traversal : BinTreeTraversal) -> BinTreeIntoIter<T> {
         BinTreeIntoIter { 
-            data: VecDeque::from(vec![BinTreeIntoIterDataItem::Tree(self)]),
+            data: VecDeque::from(vec![self]),
             traversal,
         }
     }
@@ -78,39 +72,42 @@ impl<T> Iterator for BinTreeIntoIter<T> {
             DepthFirst(_) => self.data.pop_back(),
             BreadthFirst => self.data.pop_front(),
         };
-        match pop {
-            None => None,
-            Some(BinTreeIntoIterDataItem::Item(item)) => Some(item),
-            Some(BinTreeIntoIterDataItem::Tree(BinTree::Empty)) => self.next(),
-            Some(BinTreeIntoIterDataItem::Tree(BinTree::Branch(item, left, right))) => {
+        if let Some(node) = pop {
+            if let Some((item, left, right)) = node.branch() {
                 match self.traversal {
                     DepthFirst(InOrder) => {
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*right));
-                        self.data.push_back(BinTreeIntoIterDataItem::Item(item));
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*left));
+                        self.data.push_back(*right);
+                        self.data.push_back(BinTree::new_leaf(*item));
+                        self.data.push_back(*left);
                         self.next()
                     },
                     DepthFirst(PreOrder) => {
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*right));
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*left));
-                        self.data.push_back(BinTreeIntoIterDataItem::Item(item));
+                        self.data.push_back(*right);
+                        self.data.push_back(*left);
+                        self.data.push_back(BinTree::new_leaf(*item));
                         self.next()
                     },
                     DepthFirst(PostOrder) => {
-                        self.data.push_back(BinTreeIntoIterDataItem::Item(item));
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*right));
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*left));
+                        self.data.push_back(BinTree::new_leaf(*item));
+                        self.data.push_back(*right);
+                        self.data.push_back(*left);
                         self.next()
 
                     },
                     BreadthFirst => {
-                        self.data.push_back(BinTreeIntoIterDataItem::Item(item));
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*left));
-                        self.data.push_back(BinTreeIntoIterDataItem::Tree(*right));
+                        self.data.push_back(BinTree::new_leaf(*item));
+                        self.data.push_back(*left);
+                        self.data.push_back(*right);
                         self.next()
                     },
                 }
+            } else {
+                // empty
+                self.next()
             }
+        } else {
+            // no more work
+            None
         }
     }
 }
