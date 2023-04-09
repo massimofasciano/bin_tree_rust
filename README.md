@@ -1,6 +1,19 @@
 # test_iterators
 
-A small Rust project that illustrates iteration using a simple binary tree
+A small Rust project that illustrates iteration using a simple binary tree.
+
+I used the following enum to represent the tree (and each node recursively):
+
+```rust
+pub enum BinTree<Item> {
+    Empty,
+    Branch(Item,Box<BinTree<Item>>,Box<BinTree<Item>>),
+}
+```
+
+The empty tree gets a direct representation and so does the branch. A leaf is a branch with 2 empty trees as children. Special methods that deal with leaves hide this internal representation. The enum represents both the node and the tree.
+
+It is also possible to represent a tree using the Option type (each child is an Option<...> and the top level tree is a special case wrapped in an Option<...> to deal with the empty tree).
 
 ```rust
 use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree};
