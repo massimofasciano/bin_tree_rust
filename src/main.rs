@@ -82,6 +82,8 @@ fn main() {
     let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();
     println!("{}",t);
     // [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]
+    println!("{}",t.inner());
+    // ((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)
     println!("{}",t.contains(&2));
     // true
     println!("{}",t.contains(&10));
@@ -92,4 +94,6 @@ fn main() {
     // true
     println!("{}",t);
     // [1, 2, 3, 5, 6, 8, 9, 10, 11, 18]
+    println!("{}",t.inner());
+    // ((((1 => (2)) <= 3 => (5)) <= 6 => (8 => (((9) <= 10) <= 11))) <= 18)
 }
