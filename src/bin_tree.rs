@@ -21,10 +21,10 @@ impl<Item> BinTree<Item> {
     }
     /// creates a leaf
     pub fn new_leaf(item : Item) -> Self {
-        Self::new_branch(item, Self::empty(), Self::empty())
+        Self::new_branch(item, Self::new(), Self::new())
     }
     /// creates an empty tree
-    pub fn empty() -> Self {
+    pub fn new() -> Self {
         Self { root : None }
     }
     /// tests if tree is a branch (leaf is excluded although it is stored as a branch with empty children internally)
@@ -119,7 +119,7 @@ impl<Item> BinTree<Item> {
 impl<Item> Default for BinTree<Item> {
     /// default is an empty tree
     fn default() -> Self {
-        Self::empty()
+        Self::new()
     }
 }
 
@@ -161,14 +161,13 @@ impl<Item> BinTree<Item> {
     fn pretty_write_indent(&self, f: &mut std::fmt::Formatter<'_>, tab : &str, indent : usize) -> std::fmt::Result
         where Item : std::fmt::Debug 
     {
-        if self.is_empty() {
-            write!(f,"{}{}\n",tab.repeat(indent),"@")
-        } else {
-            let (item, left, right) = 
-                (self.value().unwrap(), self.left().unwrap(), self.right().unwrap());
+        if let Some((item, left, right)) = self.branch() {
             right.pretty_write_indent(f, tab, indent+1)?;
             write!(f,"{}{:?}\n",tab.repeat(indent),item)?;
             left.pretty_write_indent(f, tab, indent+1)
+        } else {
+            // empty
+            write!(f,"{}{}\n",tab.repeat(indent),"@")
         }
     }
 }
@@ -214,18 +213,18 @@ impl<'a,T > Deref for FormattedBinTree<'a,T> {
 impl<T> From<()> for BinTree<T> {
     /// build an empty tree from the empty type
     fn from(_: ()) -> Self {
-        Self::empty()
+        Self::new()
     }
 }
 
 /// convenient function to construct a tree from item and branches
 pub fn tree<T>(item: T, left: impl Into<BinTree<T>>, right: impl Into<BinTree<T>>) -> BinTree<T> {
-    BinTree::branch(item, left.into(), right.into())
+    BinTree::new_branch(item, left.into(), right.into())
 }
 
 /// convenient function to construct a tree leaf from item
 pub fn leaf<T>(item: T) -> BinTree<T> {
-    BinTree::leaf(item)
+    BinTree::new_leaf(item)
 }
 
 impl<Item> BinTree<Item> {
@@ -249,16 +248,15 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree and keeps order property
     pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
-        if self.is_empty() {
-            *self = Self::leaf(new_item)
+        if let Some((item, left, right)) = self.branch_mut() {
+            if new_item < *item {
+                left.push_sorted(new_item);
+            } else {
+                right.push_sorted(new_item);
+            }
         } else {
-            let (item, left, right) = 
-                (self.value().unwrap(), self.left_mut().unwrap(), self.right_mut().unwrap());
-                if new_item < *item {
-                    left.push_sorted(new_item);
-                } else {
-                    right.push_sorted(new_item);
-                }
+            // empty
+            *self = Self::new_leaf(new_item)
         }
     }
     /// extend a sorted or empty tree and keeps order property
@@ -288,14 +286,12 @@ impl<Item> BinTree<Item> {
     }
     /// push to the right branch of a tree (linear tree)
     pub fn push_right(&mut self, new_item : Item) {
-        match self {
-            Self::Empty => {
-                *self = Self::leaf(new_item)
-            },
-            Self::Branch(_, _, right) => {
-                right.push_right(new_item);
-            }
-        };
+        if let Some((item, left, right)) = self.branch_mut() {
+            right.push_right(new_item);
+        } else {
+            // empty
+            *self = Self::new_leaf(new_item)
+        }
     }
     /// extend to the right branch of a tree (linear tree)
     pub fn extend_right<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
@@ -305,14 +301,12 @@ impl<Item> BinTree<Item> {
     }
     /// push to the left branch of a tree (linear tree)
     pub fn push_left(&mut self, new_item : Item) {
-        match self {
-            Self::Empty => {
-                *self = Self::leaf(new_item)
-            },
-            Self::Branch(_, left, _) => {
-                left.push_left(new_item);
-            }
-        };
+        if let Some((item, left, right)) = self.branch_mut() {
+            left.push_left(new_item);
+        } else {
+            // empty
+            *self = Self::new_leaf(new_item)
+        }
     }
     /// extend to the left branch of a tree (linear tree)
     pub fn extend_left<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
@@ -322,32 +316,30 @@ impl<Item> BinTree<Item> {
     }
     /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
-        match self {
-            Self::Empty => {
-                None
-            },
-            Self::Branch(item, left, right) => {
-                let mut p;
-                p = left.pop();
-                if p.is_none() {
-                    p = right.pop();
-                }
-                Some(match p {
-                    None => {
-                        // We use unsafe to replace item with an uninit value.
-                        // This is safe because we destroy self right after so this value is never read.
-                        // It allows us to take Item without needing Item to implement Default.
-                        let it = std::mem::replace(item, unsafe { 
-                            std::mem::MaybeUninit::uninit().assume_init() 
-                        });
-                        *self = Self::empty();
-                        it
-                    },
-                    Some(it) => {
-                        std::mem::replace(item, it)
-                    },
-                })
+        if let Some((item, left, right)) = self.branch_mut() {
+            let mut p;
+            p = left.pop();
+            if p.is_none() {
+                p = right.pop();
             }
+            Some(match p {
+                None => {
+                    // We use unsafe to replace item with an uninit value.
+                    // This is safe because we destroy self right after so this value is never read.
+                    // It allows us to take Item without needing Item to implement Default.
+                    let it = std::mem::replace(item, unsafe { 
+                        std::mem::MaybeUninit::uninit().assume_init() 
+                    });
+                    *self = Self::new();
+                    it
+                },
+                Some(it) => {
+                    std::mem::replace(item, it)
+                },
+            })
+        } else {
+            // empty
+            None
         }
     }
     /// returns the mutable tree node containing the minimum value item
@@ -370,90 +362,82 @@ impl<Item> BinTree<Item> {
     }
     /// pop the top value from a sorted tree and preserves order
     pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
-        match self {
-            Self::Empty => {
-                None
-            },
+        if let Some((item, left, right)) = self.branch_mut() {
             // When we use unsafe to replace the item with an uninit value,
             // we always destroy the current node by assigning to *self
             // so the uninitialized value is never read.
             // It allows us to take Item without needing Item to implement Default.
-            Self::Branch(item, left, right) => {
-                if left.is_empty() && right.is_empty() {
-                    let it = std::mem::replace(item, unsafe { 
-                        std::mem::MaybeUninit::uninit().assume_init() 
-                    });
-                    *self = Self::empty();
-                    Some(it)
-                } else if right.is_empty() {
-                    let it = std::mem::replace(item, unsafe { 
-                        std::mem::MaybeUninit::uninit().assume_init() 
-                    });
-                    let left = std::mem::take(left);
-                    *self = *left;
-                    Some(it)
-                } else if left.is_empty() {
-                    let it = std::mem::replace(item, unsafe { 
-                        std::mem::MaybeUninit::uninit().assume_init() 
-                    });
-                    let right = std::mem::take(right);
-                    *self = *right;
-                    Some(it)
-                } else {
-                    let min_right = right.min_tree_mut().expect("min right should always return some tree");
-                    let min_right_item = min_right.item_mut().expect("min right should always return some item");
-                    std::mem::swap(item,min_right_item);
-                    min_right.pop_sorted()
-                }
+            if left.is_empty() && right.is_empty() {
+                let it = std::mem::replace(item, unsafe { 
+                    std::mem::MaybeUninit::uninit().assume_init() 
+                });
+                *self = Self::new();
+                Some(it)
+            } else if right.is_empty() {
+                let it = std::mem::replace(item, unsafe { 
+                    std::mem::MaybeUninit::uninit().assume_init() 
+                });
+                let left = std::mem::take(left);
+                *self = left;
+                Some(it)
+            } else if left.is_empty() {
+                let it = std::mem::replace(item, unsafe { 
+                    std::mem::MaybeUninit::uninit().assume_init() 
+                });
+                let right = std::mem::take(right);
+                *self = right;
+                Some(it)
+            } else {
+                let min_right = right.min_tree_mut().expect("min right should always return some tree");
+                let min_right_item = min_right.value_mut().expect("min right should always return some item");
+                std::mem::swap(item,min_right_item);
+                min_right.pop_sorted()
             }
+        } else {
+            // empty
+            None
         }
     }
     /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, value : &Item) -> bool where Item : PartialOrd {
-        match self {
-            Self::Empty => {
-                false
-            },
-            Self::Branch(item, left, right) => {
-                if *value < *item {
-                    left.remove_sorted(value)
-                } else if *value > *item {
-                    right.remove_sorted(value)
-                } else {
-                    self.pop_sorted();
-                    true
-                }
+        if let Some((item, left, right)) = self.branch_mut() {
+            if *value < *item {
+                left.remove_sorted(value)
+            } else if *value > *item {
+                right.remove_sorted(value)
+            } else {
+                self.pop_sorted();
+                true
             }
+        } else {
+            // empty
+            false
         }
     }
     /// find a value in a sorted tree
     pub fn contains_sorted(&self, value : &Item) -> bool where Item : PartialOrd {
-        match self {
-            Self::Empty => {
-                false
-            },
-            Self::Branch(item, left, right) => {
-                if *value < *item {
-                    left.contains_sorted(value)
-                } else if *value > *item {
-                    right.contains_sorted(value)
-                } else {
-                    true
-                }
+        if let Some((item, left, right)) = self.branch() {
+            if *value < *item {
+                left.contains_sorted(value)
+            } else if *value > *item {
+                right.contains_sorted(value)
+            } else {
+                true
             }
+        } else {
+            // empty
+            false
         }
     }
     /// find a value in a tree (no ordering assumed)
     pub fn contains(&self, value : &Item) -> bool where Item : PartialEq {
-        match self {
-            Self::Empty => {
-                false
-            },
-            Self::Branch(item, left, right) => {
-                value == item || 
-                left.contains(value) || 
-                right.contains(value)
-            }
+        if let Some((item, left, right)) = self.branch() {
+            value == item || 
+            left.contains(value) || 
+            right.contains(value)
+        } else {
+            // empty
+            false
         }
     }
 }
@@ -470,7 +454,7 @@ impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
 impl<Item : PartialOrd> FromIterator<Item> for BinTree<Item> {
     /// create a sorted tree from an iterator
     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
-        let mut t = Self::empty();
+        let mut t = Self::new();
         t.extend_sorted(iter);
         t
     }
@@ -498,16 +482,16 @@ mod test {
     #[test]
     fn eq_test() {
         let bt = 
-            BinTree::branch(1,
-                BinTree::branch(2,
-                    BinTree::leaf(3),
-                    BinTree::empty(),
+            BinTree::new_branch(1,
+                BinTree::new_branch(2,
+                    BinTree::new_leaf(3),
+                    BinTree::new(),
                 ),
-                BinTree::branch(4,
-                    BinTree::empty(),
-                    BinTree::branch(5, 
-                        BinTree::leaf(6), 
-                        BinTree::empty()
+                BinTree::new_branch(4,
+                    BinTree::new(),
+                    BinTree::new_branch(5, 
+                        BinTree::new_leaf(6), 
+                        BinTree::new()
                     )
                 )
             );
@@ -566,7 +550,7 @@ mod test {
 
     #[test]
     fn push_sorted_test() {
-        let mut t = BinTree::empty();
+        let mut t = BinTree::new();
         t.push_sorted(4);
         t.push_sorted(2);
         t.push_sorted(8);
@@ -581,7 +565,7 @@ mod test {
 
     #[test]
     fn push_sorted_unique_test() {
-        let mut t = BinTree::empty();
+        let mut t = BinTree::new();
         t.push_sorted_unique(4);
         t.push_sorted_unique(2);
         t.push_sorted_unique(8);
@@ -596,7 +580,7 @@ mod test {
 
     #[test]
     fn push_right_test() {
-        let mut t = BinTree::empty();
+        let mut t = BinTree::new();
         t.push_right(4);
         t.push_right(2);
         t.push_right(8);
@@ -610,7 +594,7 @@ mod test {
 
     #[test]
     fn push_left_test() {
-        let mut t = BinTree::empty();
+        let mut t = BinTree::new();
         t.push_left(4);
         t.push_left(2);
         t.push_left(8);
@@ -647,7 +631,7 @@ mod test {
         use rand::thread_rng;
         use rand::seq::SliceRandom;
 
-        let mut t = BinTree::empty();
+        let mut t = BinTree::new();
         let mut v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
         v.shuffle(&mut thread_rng());
         t.extend_sorted(v);
