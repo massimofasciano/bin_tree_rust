@@ -82,7 +82,7 @@ impl<T> Iterator for BinTreeIntoIter<T> {
             None => None, // no more work
             Some(Value(item)) => Some(item),
             Some(Tree(tree)) => {
-                if let Some((item, left, right)) = tree.into_branch() {
+                if let Some((item, left, right)) = tree.into_node() {
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));
@@ -188,7 +188,7 @@ impl<'a,T> Iterator for BinTreeIter<'a,T> {
             None => None, // no more work
             Some(Value(item)) => Some(item),
             Some(Tree(tree)) => {
-                if let Some((item, left, right)) = tree.branch() {
+                if let Some((item, left, right)) = tree.node() {
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));
@@ -294,7 +294,7 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
             None => None, // no more work
             Some(Value(item)) => Some(item),
             Some(Tree(tree)) => {
-                if let Some((item, left, right)) = tree.branch_mut() {
+                if let Some((item, left, right)) = tree.node_mut() {
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));

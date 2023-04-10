@@ -126,7 +126,7 @@ fn main() {
 }
 ```
 
-An excerpt of the implementation of the mutable iterator:
+An excerpt from the implementation of the mutable iterator:
 
 ```rust
 impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
@@ -143,7 +143,7 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
             None => None, // no more work
             Some(Value(item)) => Some(item),
             Some(Tree(tree)) => {
-                if let Some((item, left, right)) = tree.branch_mut() {
+                if let Some((item, left, right)) = tree.node_mut() {
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));

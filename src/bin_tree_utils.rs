@@ -19,7 +19,7 @@ impl<Item> BinTree<Item> {
     pub fn write_line(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
         where Item : std::fmt::Debug 
     {
-        if let Some((item, left, right)) = self.branch() {
+        if let Some((item, left, right)) = self.node() {
             write!(f,"(")?;
             if !left.is_empty() {
                 left.write_line(f)?;
@@ -45,7 +45,7 @@ impl<Item> BinTree<Item> {
     fn pretty_write_indent(&self, f: &mut std::fmt::Formatter<'_>, tab : &str, indent : usize) -> std::fmt::Result
         where Item : std::fmt::Debug 
     {
-        if let Some((item, left, right)) = self.branch() {
+        if let Some((item, left, right)) = self.node() {
             right.pretty_write_indent(f, tab, indent+1)?;
             write!(f,"{}{:?}\n",tab.repeat(indent),item)?;
             left.pretty_write_indent(f, tab, indent+1)
@@ -94,7 +94,7 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree and keeps order property
     pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
-        if let Some((item, left, right)) = self.branch_mut() {
+        if let Some((item, left, right)) = self.node_mut() {
             if new_item < *item {
                 left.push_sorted(new_item);
             } else {
@@ -113,7 +113,7 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     pub fn push_sorted_unique(&mut self, new_item : Item) where Item : PartialOrd {
-        if let Some((item, left, right)) = self.branch_mut() {
+        if let Some((item, left, right)) = self.node_mut() {
             if new_item < *item {
                 left.push_sorted_unique(new_item);
             } else if new_item > *item {
@@ -162,7 +162,7 @@ impl<Item> BinTree<Item> {
     }
     /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
-        if let Some((item, left, right)) = self.branch_mut() {
+        if let Some((item, left, right)) = self.node_mut() {
             let mut p;
             p = left.pop();
             if p.is_none() {
@@ -208,7 +208,7 @@ impl<Item> BinTree<Item> {
     }
     /// pop the top value from a sorted tree and preserves order
     pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
-        if let Some((item, left, right)) = self.branch_mut() {
+        if let Some((item, left, right)) = self.node_mut() {
             // When we use unsafe to replace the item with an uninit value,
             // we always destroy the current node by assigning to *self
             // so the uninitialized value is never read.
@@ -246,7 +246,7 @@ impl<Item> BinTree<Item> {
     }
     /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, value : &Item) -> bool where Item : PartialOrd {
-        if let Some((item, left, right)) = self.branch_mut() {
+        if let Some((item, left, right)) = self.node_mut() {
             if *value < *item {
                 left.remove_sorted(value)
             } else if *value > *item {
@@ -262,7 +262,7 @@ impl<Item> BinTree<Item> {
     }
     /// find a value in a sorted tree
     pub fn contains_sorted(&self, value : &Item) -> bool where Item : PartialOrd {
-        if let Some((item, left, right)) = self.branch() {
+        if let Some((item, left, right)) = self.node() {
             if *value < *item {
                 left.contains_sorted(value)
             } else if *value > *item {
@@ -277,7 +277,7 @@ impl<Item> BinTree<Item> {
     }
     /// find a value in a tree (no ordering assumed)
     pub fn contains(&self, value : &Item) -> bool where Item : PartialEq {
-        if let Some((item, left, right)) = self.branch() {
+        if let Some((item, left, right)) = self.node() {
             value == item || 
             left.contains(value) || 
             right.contains(value)

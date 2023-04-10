@@ -41,8 +41,8 @@ impl<Item> BinTree<Item> {
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
     }
-    /// returns a ref to the 3 elements of the branch at the top of the tree (if not empty)
-    pub fn branch(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
+    /// returns a ref to the 3 elements of the node at the top of the tree (if not empty)
+    pub fn node(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
         if self.is_empty() {
             None
         } else {
@@ -74,8 +74,8 @@ impl<Item> BinTree<Item> {
             Some(&self.root.as_deref().unwrap().right)
         }
     }
-    /// returns a mutable ref to the 3 elements of the branch at the top of the tree (if not empty)
-    pub fn branch_mut(&mut self) -> Option<(&mut Item,&mut BinTree<Item>,&mut BinTree<Item>)> {
+    /// returns a mutable ref to the 3 elements of the node at the top of the tree (if not empty)
+    pub fn node_mut(&mut self) -> Option<(&mut Item,&mut BinTree<Item>,&mut BinTree<Item>)> {
         if self.is_empty() {
             None
         } else {
@@ -107,8 +107,8 @@ impl<Item> BinTree<Item> {
             Some(&mut self.root.as_deref_mut().unwrap().right)
         }
     }
-    /// takes the 3 elements of the branch at the top of the tree (if not empty)
-    pub fn into_branch(self) -> Option<(Item,BinTree<Item>,BinTree<Item>)> {
+    /// takes the 3 elements of the node at the top of the tree (if not empty)
+    pub fn into_node(self) -> Option<(Item,BinTree<Item>,BinTree<Item>)> {
         if self.is_empty() {
             None
         } else {
