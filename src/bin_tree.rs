@@ -184,6 +184,10 @@ impl<Item> BinTree<Item> {
             true
         }
     }
+    /// sets tree root
+    pub fn set(&mut self, tree : BinTree<Item>) {
+        *self = tree;
+    }
 }
 
 /// some tests
