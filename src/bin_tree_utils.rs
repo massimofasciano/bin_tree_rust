@@ -160,6 +160,19 @@ impl<Item> BinTree<Item> {
             self.push_left(elem);
         }
     }
+    /// take value of tree root and replace the root with other tree, return the taken value
+    pub fn take_and_replace_with(&mut self, tree: &mut BinTree<Item>) -> Option<Item> {
+        if self.is_empty() {
+            None
+        } else {
+            let value = std::mem::replace(self.value_mut().unwrap(), unsafe { 
+                std::mem::MaybeUninit::uninit().assume_init() 
+            });
+            let tree = std::mem::take(tree);
+            *self = tree;
+            Some(value)
+        }
+    }
     /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
         if let Some((item, left, right)) = self.node_mut() {
