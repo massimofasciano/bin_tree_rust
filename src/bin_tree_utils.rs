@@ -175,35 +175,28 @@ impl<Item> BinTree<Item> {
     }
     /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
-        if let Some((item, left, right)) = self.node_mut() {
+        if self.is_empty() {
+            None
+        } else {
             let mut p;
-            p = left.pop();
+            p = self.left_mut().unwrap().pop();
             if p.is_none() {
-                p = right.pop();
+                p = self.right_mut().unwrap().pop();
             }
             Some(match p {
                 None => {
-                    // We use unsafe to replace item with an uninit value.
-                    // This is safe because we destroy self right after so this value is never read.
-                    // It allows us to take Item without needing Item to implement Default.
-                    let it = std::mem::replace(item, unsafe { 
-                        std::mem::MaybeUninit::uninit().assume_init() 
-                    });
-                    *self = Self::new();
-                    it
+                    self.take_and_replace_with(&mut Self::new()).unwrap()
                 },
-                Some(it) => {
-                    std::mem::replace(item, it)
+                Some(value) => {
+                    std::mem::replace(self.value_mut().unwrap(), value)
                 },
             })
-        } else {
-            // empty
-            None
+
         }
     }
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
-    fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+    pub fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
         if self.is_leaf() {
             Some(self)
         } else if self.is_branch() {
