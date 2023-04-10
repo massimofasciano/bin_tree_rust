@@ -2,18 +2,27 @@
 
 A small Rust project that illustrates iteration using a simple binary tree.
 
-I used the following enum to represent the tree (and each node recursively):
+I used the following data structures to represent the binary tree:
 
 ```rust
-pub enum BinTree<Item> {
-    Empty,
-    Branch(Item,Box<BinTree<Item>>,Box<BinTree<Item>>),
+pub struct BinTree<Item> {
+    root: Option<Box<BinTreeNode<Item>>>
+}
+
+pub struct BinTreeNode<Item> {
+    value : Item,
+    left : BinTree<Item>,
+    right : BinTree<Item>,
 }
 ```
 
-The empty tree gets a direct representation and so does the branch. A leaf is a branch with 2 empty trees as children. Special methods that deal with leaves hide this internal representation. The enum represents both the node and the tree.
+Each node of the tree contains a value and two children (left and right tree).
+A binary tree is an optional boxed node. The Option takes care of representing the empty tree.
+The Box is necessary because the size of the tree is not known in advance and requires heap allocation.
+A leaf is a node with 2 empty children.
 
-It is also possible to represent a tree using the Option type (each child is an Option<...> and the top level tree is a special case wrapped in an Option<...> to deal with the empty tree).
+Access methods hide the internal implementation of the tree. Only the bin_tree module has access to the internals. 
+The bulk of the code (in bin_tree_utils and bin_tree_iter) only uses access methods.
 
 ```rust
 use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree};
@@ -129,37 +138,42 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
             DepthFirst(_) => self.data.pop_back(),
             BreadthFirst => self.data.pop_front(),
         };
+        use IterMutData::*;
         match pop {
-            None => None,
-            Some(BinTreeIterMutDataItem::Item(item)) => Some(item),
-            Some(BinTreeIterMutDataItem::Tree(BinTree::Empty)) => self.next(),
-            Some(BinTreeIterMutDataItem::Tree(BinTree::Branch(item, left, right))) => {
-                match self.traversal {
-                    DepthFirst(InOrder) => {
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
-                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
-                        self.next()
-                    },
-                    DepthFirst(PreOrder) => {
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
-                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
-                        self.next()
-                    },
-                    DepthFirst(PostOrder) => {
-                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
-                        self.next()
+            None => None, // no more work
+            Some(Value(item)) => Some(item),
+            Some(Tree(tree)) => {
+                if let Some((item, left, right)) = tree.branch_mut() {
+                    match self.traversal {
+                        DepthFirst(InOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.next()
+                        },
+                        DepthFirst(PreOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Value(item));
+                            self.next()
+                        },
+                        DepthFirst(PostOrder) => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.next()
 
-                    },
-                    BreadthFirst => {
-                        self.data.push_back(BinTreeIterMutDataItem::Item(item));
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(left.as_mut()));
-                        self.data.push_back(BinTreeIterMutDataItem::Tree(right.as_mut()));
-                        self.next()
-                    },
+                        },
+                        BreadthFirst => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Tree(right));
+                            self.next()
+                        },
+                    }
+                } else {
+                    // empty
+                    self.next()
                 }
             }
         }
