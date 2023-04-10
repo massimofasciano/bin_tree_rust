@@ -188,6 +188,19 @@ impl<Item> BinTree<Item> {
     pub fn set(&mut self, tree : BinTree<Item>) {
         *self = tree;
     }
+    /// take value of tree root and replace the root with other tree, return the taken value
+    pub fn take_and_replace_with(&mut self, tree: &mut BinTree<Item>) -> Option<Item> {
+        if self.is_empty() {
+            None
+        } else {
+            let value = std::mem::replace(self.value_mut().unwrap(), unsafe { 
+                std::mem::MaybeUninit::uninit().assume_init() 
+            });
+            let tree = std::mem::take(tree);
+            *self = tree;
+            Some(value)
+        }
+    }
 }
 
 /// some tests
@@ -416,5 +429,9 @@ mod test {
         let subtree = tree.get_tree_sorted_mut(&60).unwrap();
         *subtree = BinTree::new_leaf(70);
         assert_eq!(tree.to_string(),"(10 => (70))");
+        let subtree = tree.get_tree_sorted_mut(&70).unwrap();
+        let old = subtree.take_and_replace_with(&mut BinTree::new()).unwrap();
+        assert_eq!(old,70);
+        assert_eq!(tree.to_string(),"(10)");
     }
 }
