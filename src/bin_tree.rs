@@ -341,4 +341,22 @@ mod test {
             "((((1 => (2 => (2))) <= 3 => ((3 => (3 => (3))) <= 5 => (5))) <= 6 => (((6) <= 7) <= 8 => ((8 => ((9) <= 10)) <= 11))) <= 18)");
     }
 
+    #[test]
+    fn basic_access_test() {
+        let mut tree : BinTree<i32> = Default::default();
+        assert_eq!(tree.is_empty(),true);
+        tree = BinTree::new_leaf(10);
+        assert_eq!(tree.is_leaf(),true);
+        assert_eq!(tree.value().unwrap(),&10);
+        *tree.left_mut().unwrap() = BinTree::new_leaf(20);
+        assert_eq!(tree.is_leaf(),false);
+        assert_eq!(tree.is_branch(),true);
+        assert_eq!(tree.to_string(),"((20) <= 10)");
+        *tree.left_mut().unwrap() = BinTree::new();
+        *tree.right_mut().unwrap() = BinTree::new_leaf(30);
+        assert_eq!(tree.is_empty(),false);
+        assert_eq!(tree.is_leaf(),false);
+        assert_eq!(tree.is_branch(),true);
+        assert_eq!(tree.to_string(),"(10 => (30))");
+    }
 }
