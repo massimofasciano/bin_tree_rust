@@ -290,16 +290,40 @@ impl<Item> BinTree<Item> {
     pub fn get_mut(&mut self, value : &Item) -> Option<&mut Item> where Item : PartialEq {
         if let Some((item, left, right)) = self.node_mut() {
             if value == item {
-                return Some(item)
+                Some(item)
             } else if let Some(left_get) = left.get_mut(value) {
-                return Some(left_get)
+                Some(left_get)
             } else if let Some(right_get) = right.get_mut(value) {
-                return Some(right_get)
+                Some(right_get)
             } else {
                 None
             }
         } else {
             // empty
+            None
+        }
+    }
+    /// find a value in a tree and return mutable ptr to the subtree (no ordering assumed)
+    fn get_tree_ptr(&mut self, value : &Item) -> Option<*mut BinTree<Item>> where Item : PartialEq {
+        if self.is_empty() {
+            None
+        } else if value == self.value().unwrap() {
+            Some(self)
+        } else if let Some(left_ptr) = self.left_mut().unwrap().get_tree_ptr(value) {
+            Some(left_ptr)
+        } else {
+            self.right_mut().unwrap().get_tree_ptr(value)
+        }
+    }
+    /// find a value in a tree and return mutable ref to the subtree (no ordering assumed)
+    pub fn get_tree_mut(&mut self, value : &Item) -> Option<&mut BinTree<Item>> where Item : PartialEq {
+        if let Some(ptr) = self.get_tree_ptr(value) {
+            // This is safe because the mutable reference in get_tree_ptr is never modified.
+            // We use a mut pointer in get_tree_ptr to avoid the double mut borrow issue on self.
+            // We only ever borrow left or right but not both but the compiler assumes all of self is borrowed.
+            // The issue comes from using mut "getters" (left_mut and right_mut).
+            Some(unsafe{&mut *ptr})
+        } else {
             None
         }
     }
