@@ -43,85 +43,103 @@ impl<Item> BinTree<Item> {
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
     }
-    /// returns the 3 elements of the branch at the top of the tree (if not empty)
-    pub fn into_branch(self) -> Option<(Item,BinTree<Item>,BinTree<Item>)> {
-        if let Some(node) = self.root {
-            let BinTreeNode { value, left, right } = *node;
-            Some((value,left,right))
-        } else {
-            None
-        }
-    }
     /// returns a ref to the 3 elements of the branch at the top of the tree (if not empty)
     pub fn branch(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
-        if let Some(node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_ref();
-            Some((value,left,right))
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            let tree = self.root.as_deref().unwrap();
+            Some((&tree.value,&tree.left,&tree.right))
         }
     }
     /// returns a ref to the value at the top of the tree
     pub fn value(&self) -> Option<&Item> {
-        if let Some(node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_ref();
-            Some(value)
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            Some(&self.root.as_deref().unwrap().value)
         }
     }
     /// returns the left branch of the tree
     pub fn left(&self) -> Option<&BinTree<Item>> {
-        if let Some(node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_ref();
-            Some(left)
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            Some(&self.root.as_deref().unwrap().left)
         }
     }
     /// returns the right branch of the tree
     pub fn right(&self) -> Option<&BinTree<Item>> {
-        if let Some(node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_ref();
-            Some(right)
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            Some(&self.root.as_deref().unwrap().right)
         }
     }
     /// returns a mutable ref to the 3 elements of the branch at the top of the tree (if not empty)
     pub fn branch_mut(&mut self) -> Option<(&mut Item,&mut BinTree<Item>,&mut BinTree<Item>)> {
-        if let Some(mut node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_mut();
-            Some((value,left,right))
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            let tree = self.root.as_deref_mut().unwrap();
+            Some((&mut tree.value,&mut tree.left,&mut tree.right))
         }
     }
     /// returns a mutable ref to the value at the top of the tree
     pub fn value_mut(&mut self) -> Option<&mut Item> {
-        if let Some(mut node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_mut();
-            Some(value)
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            Some(&mut self.root.as_deref_mut().unwrap().value)
         }
     }
     /// returns a mutable ref to the left branch of the tree
     pub fn left_mut(&mut self) -> Option<&mut BinTree<Item>> {
-        if let Some(mut node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_mut();
-            Some(left)
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            Some(&mut self.root.as_deref_mut().unwrap().left)
         }
     }
     /// returns a mutable ref to the right branch of the tree
     pub fn right_mut(&mut self) -> Option<&mut BinTree<Item>> {
-        if let Some(mut node) = self.root {
-            let BinTreeNode { value, left, right } = node.as_mut();
-            Some(right)
-        } else {
+        if self.is_empty() {
             None
+        } else {
+            Some(&mut self.root.as_deref_mut().unwrap().right)
+        }
+    }
+    /// takes the 3 elements of the branch at the top of the tree (if not empty)
+    pub fn into_branch(self) -> Option<(Item,BinTree<Item>,BinTree<Item>)> {
+        if self.is_empty() {
+            None
+        } else {
+            let tree = *self.root.unwrap();
+            Some((tree.value,tree.left,tree.right))
+        }
+    }
+    /// takes the value at the top of the tree
+    pub fn into_value(self) -> Option<Item> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.root.unwrap().value)
+        }
+    }
+    /// takes the left branch of the tree
+    pub fn into_left(self) -> Option<BinTree<Item>> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.root.unwrap().left)
+        }
+    }
+    /// takes the right branch of the tree
+    pub fn into_right(self) -> Option<BinTree<Item>> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.root.unwrap().right)
         }
     }
 }
@@ -296,7 +314,7 @@ impl<Item> BinTree<Item> {
     }
     /// push to the right branch of a tree (linear tree)
     pub fn push_right(&mut self, new_item : Item) {
-        if let Some((item, left, right)) = self.branch_mut() {
+        if let Some(right) = self.right_mut() {
             right.push_right(new_item);
         } else {
             // empty
@@ -311,8 +329,8 @@ impl<Item> BinTree<Item> {
     }
     /// push to the left branch of a tree (linear tree)
     pub fn push_left(&mut self, new_item : Item) {
-        if let Some((item, left, right)) = self.branch_mut() {
-            left.push_left(new_item);
+        if let Some(left) = self.left_mut() {
+                left.push_left(new_item);
         } else {
             // empty
             *self = Self::new_leaf(new_item)

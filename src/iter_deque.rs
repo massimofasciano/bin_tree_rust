@@ -22,9 +22,14 @@ use DepthFirstOrder::*;
 // into_iter
 //
 
+/// Value or Tree
+enum IterIntoData<Item> {
+    Value(Item),
+    Tree(BinTree<Item>)
+}
 /// iterator struct using a deque
 pub struct BinTreeIntoIter<T> {
-    data: VecDeque<BinTree<T>>,
+    data: VecDeque<IterIntoData<T>>,
     traversal: BinTreeTraversal,
 }
 
@@ -41,7 +46,7 @@ impl<T> IntoIterator for BinTree<T> {
 impl<T> BinTree<T> {
     fn into_iter_traversal(self, traversal : BinTreeTraversal) -> BinTreeIntoIter<T> {
         BinTreeIntoIter { 
-            data: VecDeque::from(vec![self]),
+            data: VecDeque::from(vec![IterIntoData::Tree(self)]),
             traversal,
         }
     }
@@ -72,42 +77,44 @@ impl<T> Iterator for BinTreeIntoIter<T> {
             DepthFirst(_) => self.data.pop_back(),
             BreadthFirst => self.data.pop_front(),
         };
-        if let Some(node) = pop {
-            if let Some((item, left, right)) = node.into_branch() {
-                match self.traversal {
-                    DepthFirst(InOrder) => {
-                        self.data.push_back(right);
-                        self.data.push_back(BinTree::new_leaf(item));
-                        self.data.push_back(left);
-                        self.next()
-                    },
-                    DepthFirst(PreOrder) => {
-                        self.data.push_back(right);
-                        self.data.push_back(left);
-                        self.data.push_back(BinTree::new_leaf(item));
-                        self.next()
-                    },
-                    DepthFirst(PostOrder) => {
-                        self.data.push_back(BinTree::new_leaf(item));
-                        self.data.push_back(right);
-                        self.data.push_back(left);
-                        self.next()
+        use IterIntoData::*;
+        match pop {
+            None => None, // no more work
+            Some(Value(item)) => Some(item),
+            Some(Tree(tree)) => {
+                if let Some((item, left, right)) = tree.into_branch() {
+                    match self.traversal {
+                        DepthFirst(InOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.next()
+                        },
+                        DepthFirst(PreOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Value(item));
+                            self.next()
+                        },
+                        DepthFirst(PostOrder) => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.next()
 
-                    },
-                    BreadthFirst => {
-                        self.data.push_back(BinTree::new_leaf(item));
-                        self.data.push_back(left);
-                        self.data.push_back(right);
-                        self.next()
-                    },
+                        },
+                        BreadthFirst => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Tree(right));
+                            self.next()
+                        },
+                    }
+                } else {
+                    // empty
+                    self.next()
                 }
-            } else {
-                // empty
-                self.next()
             }
-        } else {
-            // no more work
-            None
         }
     }
 }
@@ -116,9 +123,15 @@ impl<T> Iterator for BinTreeIntoIter<T> {
 // iter
 //
 
+/// Value or Tree
+enum IterData<'a, Item> {
+    Value(&'a Item),
+    Tree(&'a BinTree<Item>)
+}
+
 /// iterator struct using a deque
 pub struct BinTreeIter<'a, T> {
-    data: VecDeque<&'a BinTree<T>>,
+    data: VecDeque<IterData<'a,T>>,
     traversal: BinTreeTraversal,
 }
 
@@ -139,7 +152,7 @@ impl<'a, T> BinTree<T> {
     }
     fn iter_traversal(&'a self, traversal : BinTreeTraversal) -> BinTreeIter<'a, T> {
         BinTreeIter { 
-            data: VecDeque::from(vec![self]),
+            data: VecDeque::from(vec![IterData::Tree(self)]),
             traversal,
         }
     }
@@ -170,42 +183,44 @@ impl<'a,T> Iterator for BinTreeIter<'a,T> {
             DepthFirst(_) => self.data.pop_back(),
             BreadthFirst => self.data.pop_front(),
         };
-        if let Some(node) = pop {
-            if let Some((item, left, right)) = node.branch() {
-                match self.traversal {
-                    DepthFirst(InOrder) => {
-                        self.data.push_back(right);
-                        self.data.push_back(&BinTree::new_leaf(*item));
-                        self.data.push_back(left);
-                        self.next()
-                    },
-                    DepthFirst(PreOrder) => {
-                        self.data.push_back(right);
-                        self.data.push_back(left);
-                        self.data.push_back(&BinTree::new_leaf(*item));
-                        self.next()
-                    },
-                    DepthFirst(PostOrder) => {
-                        self.data.push_back(&BinTree::new_leaf(*item));
-                        self.data.push_back(right);
-                        self.data.push_back(left);
-                        self.next()
+        use IterData::*;
+        match pop {
+            None => None, // no more work
+            Some(Value(item)) => Some(item),
+            Some(Tree(tree)) => {
+                if let Some((item, left, right)) = tree.branch() {
+                    match self.traversal {
+                        DepthFirst(InOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.next()
+                        },
+                        DepthFirst(PreOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Value(item));
+                            self.next()
+                        },
+                        DepthFirst(PostOrder) => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.next()
 
-                    },
-                    BreadthFirst => {
-                        self.data.push_back(&BinTree::new_leaf(*item));
-                        self.data.push_back(left);
-                        self.data.push_back(right);
-                        self.next()
-                    },
+                        },
+                        BreadthFirst => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Tree(right));
+                            self.next()
+                        },
+                    }
+                } else {
+                    // empty
+                    self.next()
                 }
-            } else {
-                // empty
-                self.next()
             }
-        } else {
-            // no more work
-            None
         }
     }
 }
@@ -214,9 +229,15 @@ impl<'a,T> Iterator for BinTreeIter<'a,T> {
 // iter_mut
 //
 
+/// Value or Tree
+enum IterMutData<'a, Item> {
+    Value(&'a mut Item),
+    Tree(&'a mut BinTree<Item>)
+}
+
 /// iterator struct using a deque
 pub struct BinTreeIterMut<'a, T> {
-    data: VecDeque<&'a mut BinTree<T>>,
+    data: VecDeque<IterMutData<'a,T>>,
     traversal: BinTreeTraversal,
 }
 
@@ -237,7 +258,7 @@ impl<'a, T> BinTree<T> {
     }
     fn iter_mut_traversal(&'a mut self, traversal : BinTreeTraversal) -> BinTreeIterMut<'a, T> {
         BinTreeIterMut { 
-            data: VecDeque::from(vec![self]),
+            data: VecDeque::from(vec![IterMutData::Tree(self)]),
             traversal,
         }
     }
@@ -263,48 +284,49 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
     type Item = &'a mut T;
 
     /// a deque is used to push and pop from both ends according to the specified traversal behavior
-    /// a deque is used to push and pop from both ends according to the specified traversal behavior
     fn next(&mut self) -> Option<Self::Item> {
         let pop = match self.traversal {
             DepthFirst(_) => self.data.pop_back(),
             BreadthFirst => self.data.pop_front(),
         };
-        if let Some(node) = pop {
-            if let Some((item, left, right)) = node.branch_mut() {
-                match self.traversal {
-                    DepthFirst(InOrder) => {
-                        self.data.push_back(right);
-                        self.data.push_back(&mut BinTree::new_leaf(*item));
-                        self.data.push_back(left);
-                        self.next()
-                    },
-                    DepthFirst(PreOrder) => {
-                        self.data.push_back(right);
-                        self.data.push_back(left);
-                        self.data.push_back(&mut BinTree::new_leaf(*item));
-                        self.next()
-                    },
-                    DepthFirst(PostOrder) => {
-                        self.data.push_back(&mut BinTree::new_leaf(*item));
-                        self.data.push_back(right);
-                        self.data.push_back(left);
-                        self.next()
+        use IterMutData::*;
+        match pop {
+            None => None, // no more work
+            Some(Value(item)) => Some(item),
+            Some(Tree(tree)) => {
+                if let Some((item, left, right)) = tree.branch_mut() {
+                    match self.traversal {
+                        DepthFirst(InOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.next()
+                        },
+                        DepthFirst(PreOrder) => {
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Value(item));
+                            self.next()
+                        },
+                        DepthFirst(PostOrder) => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(right));
+                            self.data.push_back(Tree(left));
+                            self.next()
 
-                    },
-                    BreadthFirst => {
-                        self.data.push_back(&mut BinTree::new_leaf(*item));
-                        self.data.push_back(left);
-                        self.data.push_back(right);
-                        self.next()
-                    },
+                        },
+                        BreadthFirst => {
+                            self.data.push_back(Value(item));
+                            self.data.push_back(Tree(left));
+                            self.data.push_back(Tree(right));
+                            self.next()
+                        },
+                    }
+                } else {
+                    // empty
+                    self.next()
                 }
-            } else {
-                // empty
-                self.next()
             }
-        } else {
-            // no more work
-            None
         }
     }
 }
