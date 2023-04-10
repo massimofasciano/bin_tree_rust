@@ -342,6 +342,18 @@ impl<Item> BinTree<Item> {
             None
         }
     }
+    /// find a value in a sorted tree and return mutable ref
+    pub fn get_tree_sorted_mut(&mut self, value : &Item) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+        if self.is_empty() {
+            None
+        } else if *value < *self.value().unwrap() {
+            self.left_mut().unwrap().get_tree_sorted_mut(value)
+        } else if *value > *self.value().unwrap() {
+            self.right_mut().unwrap().get_tree_sorted_mut(value)
+        } else {
+            Some(self)
+        }
+    }
 }
 
 impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
