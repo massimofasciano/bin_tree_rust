@@ -212,6 +212,24 @@ impl<Item> BinTree<Item> {
             None
         }
     }
+    /// returns the mutable tree node containing the maximum value item
+    /// assumes that the tree is sorted
+    pub fn max_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+        if self.is_leaf() {
+            Some(self)
+        } else if self.is_branch() {
+            if self.right().unwrap().is_empty() {
+                // no right path
+                Some(self)
+            } else {
+                // max from right path
+                self.right_mut().unwrap().max_tree_mut()
+
+            }
+        } else {
+            None
+        }
+    }
     /// pop the top value from a sorted tree and preserves order
     pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
         if let Some((item, left, right)) = self.node_mut() {
