@@ -7,7 +7,7 @@ pub struct BinTree<Item> {
 
 /// a general purpose binary tree node
 #[derive(Debug,Clone,PartialEq)]
-pub struct BinTreeNode<Item> {
+struct BinTreeNode<Item> {
     value : Item,
     left : BinTree<Item>,
     right : BinTree<Item>,
@@ -15,12 +15,12 @@ pub struct BinTreeNode<Item> {
 
 impl<Item> BinTree<Item> {
     /// creates a branch
-    pub fn new_branch(value : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
+    pub fn new_node(value : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
         Self { root : Some(Box::new(BinTreeNode{value, left, right}))}
     }
     /// creates a leaf
     pub fn new_leaf(item : Item) -> Self {
-        Self::new_branch(item, Self::new(), Self::new())
+        Self::new_node(item, Self::new(), Self::new())
     }
     /// creates an empty tree
     pub fn new() -> Self {
@@ -40,6 +40,10 @@ impl<Item> BinTree<Item> {
     /// tests if tree is empty
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
+    }
+    /// tests if tree is a node (not empty)
+    pub fn is_node(&self) -> bool {
+        !self.is_empty()
     }
     /// returns a ref to the 3 elements of the node at the top of the tree (if not empty)
     pub fn node(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
@@ -140,6 +144,46 @@ impl<Item> BinTree<Item> {
             Some(self.root.unwrap().right)
         }
     }
+    /// sets node at root of tree
+    pub fn set_node(&mut self, value : Item, left : BinTree<Item>, right : BinTree<Item>) {
+        if self.is_empty() {
+            *self = Self::new_node(value,left,right);
+        } else {
+            let tree = self.root.as_deref_mut().unwrap();
+            tree.value = value;
+            tree.left = left;
+            tree.right = right;
+        }
+    }
+    /// sets value at root of tree
+    pub fn set_value(&mut self, value : Item) {
+        if self.is_empty() {
+            *self = Self::new_leaf(value);
+        } else {
+            let tree = self.root.as_deref_mut().unwrap();
+            tree.value = value;
+        }
+    }
+    /// sets left child at root of tree
+    pub fn set_left(&mut self, left : BinTree<Item>) -> bool {
+        if self.is_empty() {
+            false
+        } else {
+            let tree = self.root.as_deref_mut().unwrap();
+            tree.left = left;
+            true
+        }
+    }
+    /// sets right child at root of tree
+    pub fn set_right(&mut self, right : BinTree<Item>) -> bool {
+        if self.is_empty() {
+            false
+        } else {
+            let tree = self.root.as_deref_mut().unwrap();
+            tree.right = right;
+            true
+        }
+    }
 }
 
 /// some tests
@@ -164,14 +208,14 @@ mod test {
     #[test]
     fn eq_test() {
         let bt = 
-            BinTree::new_branch(1,
-                BinTree::new_branch(2,
+            BinTree::new_node(1,
+                BinTree::new_node(2,
                     BinTree::new_leaf(3),
                     BinTree::new(),
                 ),
-                BinTree::new_branch(4,
+                BinTree::new_node(4,
                     BinTree::new(),
-                    BinTree::new_branch(5, 
+                    BinTree::new_node(5, 
                         BinTree::new_leaf(6), 
                         BinTree::new()
                     )

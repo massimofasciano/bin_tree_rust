@@ -5,11 +5,12 @@ A small Rust project that illustrates iteration using a simple binary tree.
 I used the following data structures to represent the binary tree:
 
 ```rust
+#[repr(transparent)]
 pub struct BinTree<Item> {
     root: Option<Box<BinTreeNode<Item>>>
 }
 
-pub struct BinTreeNode<Item> {
+struct BinTreeNode<Item> {
     value : Item,
     left : BinTree<Item>,
     right : BinTree<Item>,

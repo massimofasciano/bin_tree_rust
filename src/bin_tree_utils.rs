@@ -65,7 +65,7 @@ impl<T> From<()> for BinTree<T> {
 
 /// convenient function to construct a tree from value and branches
 pub fn tree<T>(value: T, left: impl Into<BinTree<T>>, right: impl Into<BinTree<T>>) -> BinTree<T> {
-    BinTree::new_branch(value, left.into(), right.into())
+    BinTree::new_node(value, left.into(), right.into())
 }
 
 /// convenient function to construct a tree leaf from a value
@@ -328,14 +328,14 @@ mod test {
     #[test]
     fn eq_test() {
         let bt = 
-            BinTree::new_branch(1,
-                BinTree::new_branch(2,
+            BinTree::new_node(1,
+                BinTree::new_node(2,
                     BinTree::new_leaf(3),
                     BinTree::new(),
                 ),
-                BinTree::new_branch(4,
+                BinTree::new_node(4,
                     BinTree::new(),
-                    BinTree::new_branch(5, 
+                    BinTree::new_node(5, 
                         BinTree::new_leaf(6), 
                         BinTree::new()
                     )
