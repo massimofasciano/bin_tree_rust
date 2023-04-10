@@ -406,5 +406,7 @@ mod test {
         assert_eq!(tree.is_leaf(),false);
         assert_eq!(tree.is_branch(),true);
         assert_eq!(tree.to_string(),"(10 => (30))");
+        *tree.get_mut(&30).unwrap() = 40;
+        assert_eq!(tree.to_string(),"(10 => (40))");
     }
 }

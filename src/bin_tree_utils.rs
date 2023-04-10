@@ -286,6 +286,23 @@ impl<Item> BinTree<Item> {
             false
         }
     }
+    /// find a value in a tree and return mutable ref (no ordering assumed)
+    pub fn get_mut(&mut self, value : &Item) -> Option<&mut Item> where Item : PartialEq {
+        if let Some((item, left, right)) = self.node_mut() {
+            if value == item {
+                return Some(item)
+            } else if let Some(left_get) = left.get_mut(value) {
+                return Some(left_get)
+            } else if let Some(right_get) = right.get_mut(value) {
+                return Some(right_get)
+            } else {
+                None
+            }
+        } else {
+            // empty
+            None
+        }
+    }
 }
 
 impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
