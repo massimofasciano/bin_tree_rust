@@ -41,3 +41,11 @@ macro_rules! let_node_move {
         let crate::BinTreeNode{value:$value,left:$left,right:$right} = *($tree.root).expect("tree should not be empty");
     };
 }
+
+/// import this to use the macros in other crates
+pub mod macros {
+    pub use let_node_move;
+    pub use let_node_ref;
+    pub use let_node_ref_mut;
+    pub use crate::BinTreeNode;
+}
