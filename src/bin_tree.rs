@@ -65,15 +65,6 @@ impl<Item> BinTree<Item> {
             Some(&self.root.as_deref().unwrap().right)
         }
     }
-    /// returns a mutable ref to the 3 elements of the node at the top of the tree (if not empty)
-    // pub fn node_mut(&mut self) -> Option<(&mut Item,&mut BinTree<Item>,&mut BinTree<Item>)> {
-    //     if self.is_empty() {
-    //         None
-    //     } else {
-    //         let tree = self.root.as_deref_mut().unwrap();
-    //         Some((&mut tree.value,&mut tree.left,&mut tree.right))
-    //     }
-    // }
     /// returns a mutable ref to the value at the top of the tree
     pub fn value_mut(&mut self) -> Option<&mut Item> {
         if self.is_empty() {
@@ -98,7 +89,7 @@ impl<Item> BinTree<Item> {
             Some(&mut self.root.as_deref_mut().unwrap().right)
         }
     }
-    /// takes the value at the top of the tree
+    /// consumes self and returns the value at the top of the tree
     pub fn into_value(self) -> Option<Item> {
         if self.is_empty() {
             None
@@ -106,7 +97,7 @@ impl<Item> BinTree<Item> {
             Some(self.root.unwrap().value)
         }
     }
-    /// takes the left branch of the tree
+    /// consumes self and returns the left branch of the tree
     pub fn into_left(self) -> Option<BinTree<Item>> {
         if self.is_empty() {
             None
@@ -114,7 +105,7 @@ impl<Item> BinTree<Item> {
             Some(self.root.unwrap().left)
         }
     }
-    /// takes the right branch of the tree
+    /// consumes self and returns the right branch of the tree
     pub fn into_right(self) -> Option<BinTree<Item>> {
         if self.is_empty() {
             None
