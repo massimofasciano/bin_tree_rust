@@ -46,6 +46,12 @@ fn demo() {
     // by wrapping in an ordered set or map, we avoid these issues (see below)
     assert_eq!(t.contains_sorted(&5),true);
     
+    // iterators with 4 traversal orders (breadth-first, depth-first: in, pre, post-order)
+    assert_eq!(t.iter_bfs().map(|x|x.clone()).collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
+    assert_eq!(t.iter_dfs_in().map(|x|x.clone()).collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
+    assert_eq!(t.iter_dfs_pre().map(|x|x.clone()).collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
+    assert_eq!(t.iter_dfs_post().map(|x|x.clone()).collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
+
     // binary tree iter_mut
     for i in t.iter_mut() {
         print!("{}",i);
