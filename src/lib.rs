@@ -42,10 +42,27 @@ macro_rules! let_node_move {
     };
 }
 
+#[macro_export]
+/// take and return a value while replacing the dest tree with the source tree
+/// (the 3 expr are assumed to be &mut)
+macro_rules! take_value_replace_tree {
+    ($dest_tree:expr , $value:expr , $source_tree:expr) => {
+        {
+            let value_taken = std::mem::replace($value, unsafe { 
+                std::mem::MaybeUninit::uninit().assume_init() 
+            });
+            let source_tree_taken = std::mem::take($source_tree);
+            *$dest_tree = source_tree_taken;
+            value_taken
+        }
+    };
+}
+
 /// import this to use the macros in other crates
 pub mod macros {
     pub use let_node_move;
     pub use let_node_ref;
     pub use let_node_ref_mut;
+    pub use take_value_replace_tree;
     pub use crate::BinTreeNode;
 }

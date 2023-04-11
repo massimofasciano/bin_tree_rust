@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref_mut, let_node_ref};
+use crate::{BinTree, let_node_ref_mut, let_node_ref, take_value_replace_tree};
 
 impl<Item> Default for BinTree<Item> {
     /// default is an empty tree
@@ -160,19 +160,6 @@ impl<Item> BinTree<Item> {
             self.push_left(elem);
         }
     }
-    /// take value of tree root and replace the root with other tree, return the taken value
-    pub fn take_and_replace_with(&mut self, tree: &mut BinTree<Item>) -> Option<Item> {
-        if self.is_empty() {
-            None
-        } else {
-            let value = std::mem::replace(self.value_mut().unwrap(), unsafe { 
-                std::mem::MaybeUninit::uninit().assume_init() 
-            });
-            let tree = std::mem::take(tree);
-            *self = tree;
-            Some(value)
-        }
-    }
     /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
         if self.is_empty() {
@@ -185,7 +172,7 @@ impl<Item> BinTree<Item> {
             }
             Some(match p {
                 None => {
-                    self.take_and_replace_with(&mut Self::new()).unwrap()
+                    take_value_replace_tree!(self,self.value_mut().unwrap(),&mut Self::new())
                 },
                 Some(value) => {
                     std::mem::replace(self.value_mut().unwrap(), value)
@@ -235,35 +222,17 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             None
         } else {
-            let_node_ref_mut!(self => item, left, right);
-            // When we use unsafe to replace the item with an uninit value,
-            // we always destroy the current node by assigning to *self
-            // so the uninitialized value is never read.
-            // It allows us to take Item without needing Item to implement Default.
+            let_node_ref_mut!(self => value, left, right);
             if left.is_empty() && right.is_empty() {
-                let it = std::mem::replace(item, unsafe { 
-                    std::mem::MaybeUninit::uninit().assume_init() 
-                });
-                *self = Self::new();
-                Some(it)
+                Some(take_value_replace_tree!(self,value,&mut Self::new()))
             } else if right.is_empty() {
-                let it = std::mem::replace(item, unsafe { 
-                    std::mem::MaybeUninit::uninit().assume_init() 
-                });
-                let left = std::mem::take(left);
-                *self = left;
-                Some(it)
+                Some(take_value_replace_tree!(self,value,left))
             } else if left.is_empty() {
-                let it = std::mem::replace(item, unsafe { 
-                    std::mem::MaybeUninit::uninit().assume_init() 
-                });
-                let right = std::mem::take(right);
-                *self = right;
-                Some(it)
+                Some(take_value_replace_tree!(self,value,right))
             } else {
                 let min_right = right.min_tree_mut().expect("min right should always return some tree");
-                let min_right_item = min_right.value_mut().expect("min right should always return some item");
-                std::mem::swap(item,min_right_item);
+                let min_right_value = min_right.value_mut().expect("min right should always return some item");
+                std::mem::swap(value,min_right_value);
                 min_right.pop_sorted()
             }
         }

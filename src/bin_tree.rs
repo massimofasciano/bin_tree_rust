@@ -385,9 +385,5 @@ mod test {
         let subtree = tree.get_tree_sorted_mut(&60).unwrap();
         *subtree = BinTree::new_leaf(70);
         assert_eq!(tree.to_string(),"(10 => (70))");
-        let subtree = tree.get_tree_sorted_mut(&70).unwrap();
-        let old = subtree.take_and_replace_with(&mut BinTree::new()).unwrap();
-        assert_eq!(old,70);
-        assert_eq!(tree.to_string(),"(10)");
     }
 }
