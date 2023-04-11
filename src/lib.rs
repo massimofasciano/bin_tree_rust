@@ -1,6 +1,6 @@
 /// implementation of a simple binary tree (struct and private methods)
-pub mod bin_tree;
-pub use crate::bin_tree::*;
+pub mod bin_tree_types;
+pub use crate::bin_tree_types::*;
 
 /// various tools for the binary tree
 pub mod bin_tree_utils;
