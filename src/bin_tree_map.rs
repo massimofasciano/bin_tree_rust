@@ -10,9 +10,7 @@ pub struct BinTreeMapKeyVal<Key,Value> where Key : PartialOrd {
 /// a basic map container shows how to encapsulate a type inside another
 #[derive(Debug,Clone)]
 #[repr(transparent)]
-pub struct BinTreeMap<Key,Value> where 
-    Key : PartialOrd,
-{
+pub struct BinTreeMap<Key,Value> where Key : PartialOrd {
     data: BinTree<BinTreeMapKeyVal<Key,Value>>
 }
 
@@ -112,9 +110,7 @@ impl<Key : PartialOrd + std::fmt::Debug, Value: std::fmt::Debug> std::fmt::Displ
 
 /// iter for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
-pub struct BinTreeMapIter<'a,K,V> where 
-    K : PartialOrd,
-{
+pub struct BinTreeMapIter<'a,K,V> where K : PartialOrd {
     iter: BinTreeIter<'a,BinTreeMapKeyVal<K,V>>
 }
 
@@ -132,9 +128,7 @@ impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIter<'a,K,V> {
 
 /// iter_mut for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
-pub struct BinTreeMapIterMut<'a,K,V> where 
-    K : PartialOrd,
-{
+pub struct BinTreeMapIterMut<'a,K,V> where K : PartialOrd {
     iter: BinTreeIterMut<'a,BinTreeMapKeyVal<K,V>>
 }
 
