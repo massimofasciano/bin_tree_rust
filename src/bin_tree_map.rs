@@ -87,6 +87,14 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     pub fn iter_mut(&mut self) -> BinTreeMapIterMut<'_, Key, Value> {
         BinTreeMapIterMut{iter:self.data.iter_mut()}
     }
+    /// keys for BinTreeMap
+    pub fn keys(&self) -> BinTreeMapIterKeys<'_, Key, Value> {
+        BinTreeMapIterKeys{iter:self.data.iter()}
+    }
+    /// values for BinTreeMap
+    pub fn values(&self) -> BinTreeMapIterValues<'_, Key, Value> {
+        BinTreeMapIterValues{iter:self.data.iter()}
+    }
 }
 
 impl<Key : PartialOrd + Default, Value: Default> BinTreeMap<Key,Value> {
@@ -116,7 +124,7 @@ impl<Key: PartialOrd,Value> IntoIterator for BinTreeMap<Key,Value> {
     }
 }
 
-/// iter for BinTreeMap (uses BinTree iterator)
+/// into_iter for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
 pub struct BinTreeMapIntoIter<K,V> where K : PartialOrd {
     iter: BinTreeIntoIter<BinTreeMapKeyVal<K,V>>
@@ -182,6 +190,42 @@ impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterMut<'a,K,V> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(BinTreeMapKeyVal{key,value}) = self.iter.next() {
             Some((key,value))
+        } else {
+            None
+        }
+    }
+}
+
+/// keys iter for BinTreeMap (uses BinTree iterator)
+#[repr(transparent)]
+pub struct BinTreeMapIterKeys<'a,K,V> where K : PartialOrd {
+    iter: BinTreeIter<'a,BinTreeMapKeyVal<K,V>>
+}
+
+impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterKeys<'a,K,V> {
+    type Item = &'a K;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(BinTreeMapKeyVal{key,value: _}) = self.iter.next() {
+            Some(key)
+        } else {
+            None
+        }
+    }
+}
+
+/// values iter for BinTreeMap (uses BinTree iterator)
+#[repr(transparent)]
+pub struct BinTreeMapIterValues<'a,K,V> where K : PartialOrd {
+    iter: BinTreeIter<'a,BinTreeMapKeyVal<K,V>>
+}
+
+impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterValues<'a,K,V> {
+    type Item = &'a V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(BinTreeMapKeyVal{key: _,value}) = self.iter.next() {
+            Some(value)
         } else {
             None
         }
@@ -268,6 +312,11 @@ mod test {
                 (BinTreeMapKeyVal { key: KeyType(130), value: ValueType(-2) }))) <= \
                 BinTreeMapKeyVal { key: KeyType(3330), value: ValueType(-1782) }))\
             ");
+
+        assert_eq!(format!("{:?}",t.keys().collect::<Vec<_>>()),
+            "[KeyType(-876), KeyType(-40), KeyType(-20), KeyType(33), KeyType(110), KeyType(130), KeyType(3330)]");
+        assert_eq!(format!("{:?}",t.values().collect::<Vec<_>>()),
+            "[ValueType(-182), ValueType(234), ValueType(782), ValueType(14), ValueType(-1), ValueType(-2), ValueType(-1782)]");
 
         *t.get_mut(&KeyType(110)).unwrap() = ValueType(-110);
         assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![
