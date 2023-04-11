@@ -205,9 +205,9 @@ impl<Item> BinTree<Item> {
         }
     }
     /// try to remove value from a sorted tree and preserve order
-    pub fn remove_sorted(&mut self, target_value : &Item) -> bool where Item : PartialOrd + Default {
+    pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd + Default {
         if self.is_empty() {
-            false
+            None
         } else {
             let_node_ref_mut!(self => value, left, right);
             if *target_value < *value {
@@ -215,8 +215,7 @@ impl<Item> BinTree<Item> {
             } else if *target_value > *value {
                 right.remove_sorted(target_value)
             } else {
-                self.pop_sorted();
-                true
+                self.pop_sorted()
             }
         }
     }
@@ -597,7 +596,7 @@ mod test {
         let mut v = t.to_vec();
         v.shuffle(&mut thread_rng());
         for i in v {
-            assert_eq!(t.remove_sorted(&i),true);
+            assert_eq!(t.remove_sorted(&i),Some(i));
         }
         assert_eq!(t.to_string(),"()");
     }

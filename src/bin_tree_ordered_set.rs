@@ -30,7 +30,7 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
         self.data.push_sorted_unique(value);
     }
     /// remove from set (uses remove_sorted tree method)
-    pub fn remove(&mut self, value : &Item) -> bool where Item : Default {
+    pub fn remove(&mut self, value : &Item) -> Option<Item> where Item : Default {
         self.data.remove_sorted(value)
     }
     /// find a value in the set (uses contains_sorted tree method)

@@ -66,7 +66,7 @@ fn demo() {
     assert_eq!(t.contains(&10),true);
     assert_eq!(t.contains(&4),false);
     
-    assert_eq!(t.remove(&7),true);
+    assert_eq!(t.remove(&7),Some(7));
     assert_eq!(format!("{}",t),"[1, 2, 3, 5, 6, 8, 9, 10, 11, 18]");
     assert_eq!(t.to_tree_string(),
         "((((1 => (2)) <= 3 => (5)) <= 6 => (8 => (((9) <= 10) <= 11))) <= 18)");
