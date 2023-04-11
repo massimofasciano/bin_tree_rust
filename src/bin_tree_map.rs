@@ -7,7 +7,7 @@ pub struct BinTreeMapKeyVal<Key,Value> where Key : PartialOrd {
     value: Value,
 }
 
-/// a basic map container shows how to encapsulate a type inside another
+/// a basic map implementation using BinTree
 #[derive(Debug,Clone)]
 #[repr(transparent)]
 pub struct BinTreeMap<Key,Value> where Key : PartialOrd {
@@ -20,15 +20,6 @@ impl<Key : PartialOrd, Value> Default for BinTreeMap<Key,Value> {
         Self {
             data: BinTree::default()
         }
-    }
-}
-
-impl<Key : PartialOrd, Value> BinTreeMapKeyVal<Key,Value> {
-    fn new(key: Key, value : Value) -> Self {
-        Self { key, value }
-    }
-    fn key(&self) -> &Key {
-        &self.key
     }
 }
 
@@ -47,7 +38,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
-        self.data.push_sorted_unique_with_key(BinTreeMapKeyVal::new(key,value),&BinTreeMapKeyVal::key);
+        self.data.push_sorted_unique_with_key(BinTreeMapKeyVal{key,value},&|kv|&kv.key);
     }
     /// get a value by key from the map
     pub fn get(&self, key: &Key) -> Option<&Value> {
@@ -59,7 +50,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// get (key,value) by key from the map
     pub fn get_key_value(&self, key: &Key) -> Option<(&Key, &Value)> {
-        if let Some(kv) = self.data.get_sorted_with_key(key, &BinTreeMapKeyVal::key) {
+        if let Some(kv) = self.data.get_sorted_with_key(key, &|kv|&kv.key) {
             Some((&kv.key,&kv.value))
         } else {
             None
@@ -93,7 +84,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
 impl<Key : PartialOrd + Default, Value: Default> BinTreeMap<Key,Value> {
     /// remove by key from the map and return removed value
     pub fn remove(&mut self, key: &Key) -> Option<Value> {
-        if let Some(kv) = self.data.remove_sorted_with_key(key, &BinTreeMapKeyVal::key) {
+        if let Some(kv) = self.data.remove_sorted_with_key(key, &|kv|&kv.key) {
             Some(kv.value)
         } else {
             None
