@@ -22,8 +22,15 @@ A binary tree is an optional boxed node. The Option takes care of representing t
 The Box is necessary because the size of the tree is not known in advance and requires heap allocation.
 A leaf is a node with 2 empty children.
 
-Access methods hide the internal implementation of the tree. Only the bin_tree module has access to the internals. 
+Where possible, access methods hide the internal implementation of the tree. 
+Only the bin_tree module directly uses the internals. 
 The bulk of the code (in bin_tree_utils and bin_tree_iter) only uses access methods.
+The struct fields are public because in some situations, the borrow checker is too coarse
+and mutable references to parts of a struct are not possible with access methods
+(self is borrowed in full).
+By using 3 node access macro variants (let_node_ref, let_node_ref_mut and let_node_move), the code can
+split a node into the 3 base parts in a more flexible and fine-grained way without having direct
+knowledge of the internals of the node struct.
 
 ```rust
 use bintree_iterators::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree};
