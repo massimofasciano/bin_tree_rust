@@ -456,6 +456,36 @@ impl<Item: Default> BinTree<Item> {
             }
         }
     }
+    /// pop from the left of tree
+    pub fn pop_left(&mut self) -> Option<Item> {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if left.is_empty() && right.is_empty() {
+                Some(take_value_replace_tree!(self,value,&mut Self::new()))
+            } else if left.is_empty() {
+                self.pop()
+            } else {
+                left.pop_left()
+            }
+        }
+    }
+    /// pop from the right of tree
+    pub fn pop_right(&mut self) -> Option<Item> {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if left.is_empty() && right.is_empty() {
+                Some(take_value_replace_tree!(self,value,&mut Self::new()))
+            } else if right.is_empty() {
+                self.pop()
+            } else {
+                right.pop_right()
+            }
+        }
+    }
 }
 
 /// some tests
@@ -588,4 +618,42 @@ mod test {
             "((((1 => (2 => (2))) <= 3 => ((3 => (3 => (3))) <= 5 => (5))) <= 6 => (((6) <= 7) <= 8 => ((8 => ((9) <= 10)) <= 11))) <= 18)");
     }
 
+    #[test]
+    fn push_pop_test() {
+        let mut t = BinTree::new();
+        for i in 1..10 {
+            t.push_left(i)
+        }
+        assert_eq!(t.to_vec(),(1..10).rev().collect::<Vec<_>>());
+        for i in (1..10).rev() {
+            assert_eq!(t.pop_left().unwrap(),i);
+        }
+
+        let mut t = BinTree::new();
+        for i in 1..10 {
+            t.push_right(i)
+        }
+        assert_eq!(t.to_vec(),(1..10).collect::<Vec<_>>());
+        for i in (1..10).rev() {
+            assert_eq!(t.pop_right().unwrap(),i);
+        }
+
+        let mut t = BinTree::new();
+        for i in 1..10 {
+            t.push_left(i)
+        }
+        assert_eq!(t.to_vec(),(1..10).rev().collect::<Vec<_>>());
+        for i in 1..10 {
+            assert_eq!(t.pop_right().unwrap(),i);
+        }
+
+        let mut t = BinTree::new();
+        for i in 1..10 {
+            t.push_right(i)
+        }
+        assert_eq!(t.to_vec(),(1..10).collect::<Vec<_>>());
+        for i in 1..10 {
+            assert_eq!(t.pop_left().unwrap(),i);
+        }
+    }
 }
