@@ -107,6 +107,25 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// use a function to compare based on keys
+    pub fn push_key_sorted_unique<F,Key>(&mut self, new_item : Item, key : F) where 
+        Key : PartialOrd,
+        F : Fn(&Item) -> &Key
+    {
+        if self.is_empty() {
+            *self = Self::new_leaf(new_item)
+        } else {
+            let_node_ref_mut!(self => item, left, right);
+            if key(&new_item) < key(item) {
+                left.push_key_sorted_unique(new_item,key);
+            } else if key(&new_item) > key(item) {
+                right.push_key_sorted_unique(new_item,key);
+            } else {
+                *item = new_item;
+            }
+        }
+    }
     /// extend a sorted or empty tree with no duplicates and keeps both properties
     pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
         for elem in iter {
