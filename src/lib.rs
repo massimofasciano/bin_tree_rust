@@ -6,10 +6,6 @@ pub use crate::bin_tree_types::*;
 pub mod bin_tree_utils;
 pub use crate::bin_tree_utils::*;
 
-/// various tools for the binary tree (with small bits of unsafe code)
-pub mod bin_tree_unsafe;
-pub use crate::bin_tree_unsafe::*;
-
 /// iterators (owned,ref,mut) over a binary tree with 4 traversal methods
 pub mod bin_tree_iter;
 pub use crate::bin_tree_iter::*;
