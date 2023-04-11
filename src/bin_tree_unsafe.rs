@@ -62,6 +62,29 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+    /// pop the top value from a sorted tree and preserves order (using key function)
+    pub fn pop_sorted_with_key<F,Key>(&mut self, key: &F) -> Option<Item> where
+        Key : PartialOrd,
+        F : Fn(&Item) -> &Key,
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if left.is_empty() && right.is_empty() {
+                Some(take_value_replace_tree!(self,value,&mut Self::new()))
+            } else if right.is_empty() {
+                Some(take_value_replace_tree!(self,value,left))
+            } else if left.is_empty() {
+                Some(take_value_replace_tree!(self,value,right))
+            } else {
+                let min_right = right.min_tree_mut_with_key(key).expect("min right should always return some tree");
+                let min_right_value = min_right.value_mut().expect("min right should always return some item");
+                std::mem::swap(value,min_right_value);
+                min_right.pop_sorted_with_key(key)
+            }
+        }
+    }
 }
 
 /// some tests

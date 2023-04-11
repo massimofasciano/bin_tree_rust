@@ -71,6 +71,10 @@ impl<Item> Into<Vec<Item>> for BinTree<Item> {
 }
 
 impl<Item> BinTree<Item> {
+    /// number of elements in the tree
+    pub fn len(&self) -> usize {
+        self.iter().count()
+    }
     /// default push method (uses push_sorted)
     pub fn push(&mut self, new_item : Item) where Item : PartialOrd {
         self.push_sorted(new_item);
@@ -109,7 +113,7 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare based on keys
-    pub fn push_key_sorted_unique<F,Key>(&mut self, new_item : Item, key : F) where 
+    pub fn push_sorted_unique_with_key<F,Key>(&mut self, new_item : Item, key : &F) where 
         Key : PartialOrd,
         F : Fn(&Item) -> &Key
     {
@@ -118,9 +122,9 @@ impl<Item> BinTree<Item> {
         } else {
             let_node_ref_mut!(self => item, left, right);
             if key(&new_item) < key(item) {
-                left.push_key_sorted_unique(new_item,key);
+                left.push_sorted_unique_with_key(new_item,key);
             } else if key(&new_item) > key(item) {
-                right.push_key_sorted_unique(new_item,key);
+                right.push_sorted_unique_with_key(new_item,key);
             } else {
                 *item = new_item;
             }
@@ -180,6 +184,26 @@ impl<Item> BinTree<Item> {
             None
         }
     }
+    /// returns the mutable tree node containing the minimum value item
+    /// assumes that the tree is sorted (using key)
+    pub fn min_tree_mut_with_key<F,Key>(&mut self, key: &F) -> Option<&mut BinTree<Item>> where 
+        Key : PartialOrd,
+        F : Fn(&Item) -> &Key,
+    {
+        if self.is_leaf() {
+            Some(self)
+        } else if self.is_branch() {
+            if self.left().unwrap().is_empty() {
+                // no left path
+                Some(self)
+            } else {
+                // min from left path
+                self.left_mut().unwrap().min_tree_mut_with_key(key)
+            }
+        } else {
+            None
+        }
+    }
     /// returns the mutable tree node containing the maximum value item
     /// assumes that the tree is sorted
     pub fn max_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
@@ -214,6 +238,24 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+    /// try to remove with key from a sorted tree and preserve order
+    pub fn remove_sorted_with_key<F,Key>(&mut self, target_value : &Key, key: &F) -> Option<Item> where
+        Key : PartialOrd,
+        F : Fn(&Item) -> &Key
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if target_value < key(value) {
+                left.remove_sorted_with_key(target_value,key)
+            } else if target_value > key(value) {
+                right.remove_sorted_with_key(target_value,key)
+            } else {
+                self.pop_sorted_with_key(key)
+            }
+        }
+    }
     /// find a value in a sorted tree
     pub fn contains_sorted(&self, target_value : &Item) -> bool where Item : PartialOrd {
         if self.is_empty() {
@@ -238,6 +280,24 @@ impl<Item> BinTree<Item> {
             target_value == value || 
             left.contains(target_value) || 
             right.contains(target_value)
+        }
+    }
+    /// find a value in a sorted tree with a key function and return ref
+    pub fn get_sorted_with_key<F,Key>(&self, target_value : &Key, key : &F) -> Option<&Item> where
+        Key : PartialOrd,
+        F : Fn(&Item) -> &Key
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref!(self => value, left, right);
+            if target_value < key(value) {
+                left.get_sorted_with_key(target_value,key)
+            } else if target_value > key(value) {
+                right.get_sorted_with_key(target_value,key)
+            } else {
+                Some(value)
+            }
         }
     }
     /// find a value in a tree and return mutable ref (no ordering assumed)
