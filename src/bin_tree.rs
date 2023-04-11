@@ -41,19 +41,6 @@ impl<Item> BinTree<Item> {
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
     }
-    /// tests if tree is a node (not empty)
-    pub fn is_node(&self) -> bool {
-        !self.is_empty()
-    }
-    // /// returns a ref to the 3 elements of the node at the top of the tree (if not empty)
-    // pub fn node(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
-    //     if self.is_empty() {
-    //         None
-    //     } else {
-    //         let tree = self.root.as_deref().unwrap();
-    //         Some((&tree.value,&tree.left,&tree.right))
-    //     }
-    // }
     /// returns a ref to the value at the top of the tree
     pub fn value(&self) -> Option<&Item> {
         if self.is_empty() {
@@ -109,15 +96,6 @@ impl<Item> BinTree<Item> {
             None
         } else {
             Some(&mut self.root.as_deref_mut().unwrap().right)
-        }
-    }
-    /// takes the 3 elements of the node at the top of the tree (if not empty)
-    pub fn into_node(self) -> Option<(Item,BinTree<Item>,BinTree<Item>)> {
-        if self.is_empty() {
-            None
-        } else {
-            let tree = *self.root.unwrap();
-            Some((tree.value,tree.left,tree.right))
         }
     }
     /// takes the value at the top of the tree
