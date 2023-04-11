@@ -1,16 +1,11 @@
 use crate::{BinTree, let_node_ref_mut};
 
 /// This macro should only used in the specific context of the pop functions in this crate
-/// and is not meant as a general purpose tool. It is used to avoid code repetition and
-/// contains an unsafe uninit value.
-/// When used correctly $dest_tree owns $value and $source_tree
-/// so when $dest_tree gets replaced, the uninit value and the $source_tree go away.
+/// and is not meant as a general purpose tool. It is used to avoid code repetition.
 macro_rules! take_value_replace_tree {
     ($dest_tree:expr , $value:expr , $source_tree:expr) => {
         {
-            let value_taken = std::mem::replace($value, unsafe { 
-                std::mem::MaybeUninit::uninit().assume_init() 
-            });
+            let value_taken = std::mem::take($value);
             let source_tree_taken = std::mem::take($source_tree);
             *$dest_tree = source_tree_taken;
             value_taken
@@ -20,7 +15,7 @@ macro_rules! take_value_replace_tree {
 // make it pub to this module only for the tests submodule
 pub(self) use take_value_replace_tree;
 
-impl<Item> BinTree<Item> {
+impl<Item: Default> BinTree<Item> {
     /// pop the top item from the tree
     pub fn pop(&mut self) -> Option<Item> {
         if self.is_empty() {

@@ -223,7 +223,7 @@ impl<Item> BinTree<Item> {
         }
     }
     /// try to remove value from a sorted tree and preserve order
-    pub fn remove_sorted(&mut self, target_value : &Item) -> bool where Item : PartialOrd {
+    pub fn remove_sorted(&mut self, target_value : &Item) -> bool where Item : PartialOrd + Default {
         if self.is_empty() {
             false
         } else {
@@ -241,7 +241,8 @@ impl<Item> BinTree<Item> {
     /// try to remove with key from a sorted tree and preserve order
     pub fn remove_sorted_with_key<F,Key>(&mut self, target_value : &Key, key: &F) -> Option<Item> where
         Key : PartialOrd,
-        F : Fn(&Item) -> &Key
+        F : Fn(&Item) -> &Key,
+        Item : Default,
     {
         if self.is_empty() {
             None
