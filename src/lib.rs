@@ -26,6 +26,10 @@ pub use crate::bin_tree_ordered_set::*;
 pub mod bin_tree_map;
 pub use crate::bin_tree_map::*;
 
+/// map (kv store) implemented over a binary tree (methods that use bits of unsafe code)
+pub mod bin_tree_map_unsafe;
+pub use crate::bin_tree_map_unsafe::*;
+
 #[macro_export]
 /// split a non-empty tree into the 3 components (value, left, right): &mut version
 macro_rules! let_node_ref_mut {
