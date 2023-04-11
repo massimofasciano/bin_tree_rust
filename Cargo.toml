@@ -1,6 +1,6 @@
 [package]
-name = "bintree_iterators"
-version = "0.6.1"
+name = "bin_tree"
+version = "0.6.2"
 edition = "2021"
 
 [dependencies]

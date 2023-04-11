@@ -1,4 +1,4 @@
-use bintree_iterators::{macros::*, tree, leaf};
+use bin_tree::{macros::*, tree, leaf};
 
 #[test]
 fn test_macros() {
