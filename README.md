@@ -1,6 +1,6 @@
-# bintree_iterators
+# bin_tree
 
-A small Rust project that illustrates iteration using a simple binary tree.
+A small Rust project that illustrates iteration and other operations on binary trees.
 
 I used the following data structures to represent the binary tree:
 
