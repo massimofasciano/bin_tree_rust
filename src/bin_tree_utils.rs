@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref_mut, let_node_ref, take_value_replace_tree};
+use crate::{BinTree, let_node_ref_mut, let_node_ref};
 
 impl<Item> Default for BinTree<Item> {
     /// default is an empty tree
@@ -160,27 +160,6 @@ impl<Item> BinTree<Item> {
             self.push_left(elem);
         }
     }
-    /// pop the top item from the tree
-    pub fn pop(&mut self) -> Option<Item> {
-        if self.is_empty() {
-            None
-        } else {
-            let mut p;
-            p = self.left_mut().unwrap().pop();
-            if p.is_none() {
-                p = self.right_mut().unwrap().pop();
-            }
-            Some(match p {
-                None => {
-                    take_value_replace_tree!(self,self.value_mut().unwrap(),&mut Self::new())
-                },
-                Some(value) => {
-                    std::mem::replace(self.value_mut().unwrap(), value)
-                },
-            })
-
-        }
-    }
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
     pub fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
@@ -215,26 +194,6 @@ impl<Item> BinTree<Item> {
             }
         } else {
             None
-        }
-    }
-    /// pop the top value from a sorted tree and preserves order
-    pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
-        if self.is_empty() {
-            None
-        } else {
-            let_node_ref_mut!(self => value, left, right);
-            if left.is_empty() && right.is_empty() {
-                Some(take_value_replace_tree!(self,value,&mut Self::new()))
-            } else if right.is_empty() {
-                Some(take_value_replace_tree!(self,value,left))
-            } else if left.is_empty() {
-                Some(take_value_replace_tree!(self,value,right))
-            } else {
-                let min_right = right.min_tree_mut().expect("min right should always return some tree");
-                let min_right_value = min_right.value_mut().expect("min right should always return some item");
-                std::mem::swap(value,min_right_value);
-                min_right.pop_sorted()
-            }
         }
     }
     /// try to remove value from a sorted tree and preserve order

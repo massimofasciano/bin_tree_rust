@@ -386,4 +386,5 @@ mod test {
         *subtree = BinTree::new_leaf(70);
         assert_eq!(tree.to_string(),"(10 => (70))");
     }
+
 }
