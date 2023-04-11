@@ -94,15 +94,15 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree and keeps order property
     pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
-        if let Some((item, left, right)) = self.node_mut() {
+        if self.is_empty() {
+            *self = Self::new_leaf(new_item)
+        } else {
+            let_node_ref_mut!(self => item, left, right);
             if new_item < *item {
                 left.push_sorted(new_item);
             } else {
                 right.push_sorted(new_item);
             }
-        } else {
-            // empty
-            *self = Self::new_leaf(new_item)
         }
     }
     /// extend a sorted or empty tree and keeps order property
@@ -113,15 +113,15 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     pub fn push_sorted_unique(&mut self, new_item : Item) where Item : PartialOrd {
-        if let Some((item, left, right)) = self.node_mut() {
+        if self.is_empty() {
+            *self = Self::new_leaf(new_item)
+        } else {
+            let_node_ref_mut!(self => item, left, right);
             if new_item < *item {
                 left.push_sorted_unique(new_item);
             } else if new_item > *item {
                 right.push_sorted_unique(new_item);
             }
-        } else {
-            // empty
-            *self = Self::new_leaf(new_item)
         }
     }
     /// extend a sorted or empty tree with no duplicates and keeps both properties
@@ -232,7 +232,10 @@ impl<Item> BinTree<Item> {
     }
     /// pop the top value from a sorted tree and preserves order
     pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
-        if let Some((item, left, right)) = self.node_mut() {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => item, left, right);
             // When we use unsafe to replace the item with an uninit value,
             // we always destroy the current node by assigning to *self
             // so the uninitialized value is never read.
@@ -263,25 +266,22 @@ impl<Item> BinTree<Item> {
                 std::mem::swap(item,min_right_item);
                 min_right.pop_sorted()
             }
-        } else {
-            // empty
-            None
         }
     }
     /// try to remove value from a sorted tree and preserve order
-    pub fn remove_sorted(&mut self, value : &Item) -> bool where Item : PartialOrd {
-        if let Some((item, left, right)) = self.node_mut() {
-            if *value < *item {
-                left.remove_sorted(value)
-            } else if *value > *item {
-                right.remove_sorted(value)
+    pub fn remove_sorted(&mut self, target_value : &Item) -> bool where Item : PartialOrd {
+        if self.is_empty() {
+            false
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if *target_value < *value {
+                left.remove_sorted(target_value)
+            } else if *value > *value {
+                right.remove_sorted(target_value)
             } else {
                 self.pop_sorted();
                 true
             }
-        } else {
-            // empty
-            false
         }
     }
     /// find a value in a sorted tree
@@ -311,20 +311,18 @@ impl<Item> BinTree<Item> {
         }
     }
     /// find a value in a tree and return mutable ref (no ordering assumed)
-    pub fn get_mut(&mut self, value : &Item) -> Option<&mut Item> where Item : PartialEq {
-        if let Some((item, left, right)) = self.node_mut() {
-            if value == item {
-                Some(item)
-            } else if let Some(left_get) = left.get_mut(value) {
-                Some(left_get)
-            } else if let Some(right_get) = right.get_mut(value) {
-                Some(right_get)
-            } else {
-                None
-            }
-        } else {
-            // empty
+    pub fn get_mut(&mut self, target_value : &Item) -> Option<&mut Item> where Item : PartialEq {
+        if self.is_empty() {
             None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if target_value == value {
+                Some(value)
+            } else if let Some(left_get) = left.get_mut(target_value) {
+                Some(left_get)
+            } else {
+                right.get_mut(target_value)
+            }
         }
     }
     /// find a value in a tree and return mutable ref to the subtree (no ordering assumed)
@@ -343,18 +341,18 @@ impl<Item> BinTree<Item> {
         }
     }
     /// find a value in a sorted tree and return mutable ref
-    pub fn get_sorted_mut(&mut self, value : &Item) -> Option<&mut Item> where Item : PartialOrd {
-        if let Some((item, left, right)) = self.node_mut() {
-            if *value < *item {
-                left.get_sorted_mut(value)
-            } else if *value > *item {
-                right.get_sorted_mut(value)
-            } else {
-                Some(item)
-            }
-        } else {
-            // empty
+    pub fn get_sorted_mut(&mut self, target_value : &Item) -> Option<&mut Item> where Item : PartialOrd {
+        if self.is_empty() {
             None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if *target_value < *value {
+                left.get_sorted_mut(target_value)
+            } else if *target_value > *value {
+                right.get_sorted_mut(target_value)
+            } else {
+                Some(value)
+            }
         }
     }
     /// find a value in a sorted tree and return mutable ref

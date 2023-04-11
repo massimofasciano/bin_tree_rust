@@ -1,6 +1,6 @@
 use std::{collections::VecDeque};
 
-use crate::{BinTree, let_node_ref, let_node_move};
+use crate::{BinTree, let_node_ref, let_node_move, let_node_ref_mut};
 
 /// tree traversal methods: depth-first (3 orders), breadth-first
 enum BinTreeTraversal {
@@ -294,37 +294,37 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
             None => None, // no more work
             Some(Value(item)) => Some(item),
             Some(Tree(tree)) => {
-                if let Some((item, left, right)) = tree.node_mut() {
+                if tree.is_empty() {
+                    self.next()
+                } else {
+                    let_node_ref_mut!(tree => value, left, right);
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));
-                            self.data.push_back(Value(item));
+                            self.data.push_back(Value(value));
                             self.data.push_back(Tree(left));
                             self.next()
                         },
                         DepthFirst(PreOrder) => {
                             self.data.push_back(Tree(right));
                             self.data.push_back(Tree(left));
-                            self.data.push_back(Value(item));
+                            self.data.push_back(Value(value));
                             self.next()
                         },
                         DepthFirst(PostOrder) => {
-                            self.data.push_back(Value(item));
+                            self.data.push_back(Value(value));
                             self.data.push_back(Tree(right));
                             self.data.push_back(Tree(left));
                             self.next()
 
                         },
                         BreadthFirst => {
-                            self.data.push_back(Value(item));
+                            self.data.push_back(Value(value));
                             self.data.push_back(Tree(left));
                             self.data.push_back(Tree(right));
                             self.next()
                         },
                     }
-                } else {
-                    // empty
-                    self.next()
                 }
             }
         }

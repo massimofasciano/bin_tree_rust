@@ -66,14 +66,14 @@ impl<Item> BinTree<Item> {
         }
     }
     /// returns a mutable ref to the 3 elements of the node at the top of the tree (if not empty)
-    pub fn node_mut(&mut self) -> Option<(&mut Item,&mut BinTree<Item>,&mut BinTree<Item>)> {
-        if self.is_empty() {
-            None
-        } else {
-            let tree = self.root.as_deref_mut().unwrap();
-            Some((&mut tree.value,&mut tree.left,&mut tree.right))
-        }
-    }
+    // pub fn node_mut(&mut self) -> Option<(&mut Item,&mut BinTree<Item>,&mut BinTree<Item>)> {
+    //     if self.is_empty() {
+    //         None
+    //     } else {
+    //         let tree = self.root.as_deref_mut().unwrap();
+    //         Some((&mut tree.value,&mut tree.left,&mut tree.right))
+    //     }
+    // }
     /// returns a mutable ref to the value at the top of the tree
     pub fn value_mut(&mut self) -> Option<&mut Item> {
         if self.is_empty() {
