@@ -19,8 +19,12 @@ pub mod bin_tree_formatted;
 pub use crate::bin_tree_formatted::*;
 
 /// a basic ordered set container shows how to encapsulate a type inside another
-pub mod ordered_set;
-pub use crate::ordered_set::*;
+pub mod bin_tree_ordered_set;
+pub use crate::bin_tree_ordered_set::*;
+
+/// map (kv store) implemented over a binary tree
+pub mod bin_tree_map;
+pub use crate::bin_tree_map::*;
 
 #[macro_export]
 /// split a non-empty tree into the 3 components (value, left, right): &mut version
