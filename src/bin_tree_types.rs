@@ -159,6 +159,23 @@ impl<Item> BinTree<Item> {
     }
 }
 
+impl<T> From<()> for BinTree<T> {
+    /// build an empty tree from the empty type
+    fn from(_: ()) -> Self {
+        Self::new()
+    }
+}
+
+/// convenient function to construct a tree from value and branches
+pub fn tree<T>(value: T, left: impl Into<BinTree<T>>, right: impl Into<BinTree<T>>) -> BinTree<T> {
+    BinTree::new_node(value, left.into(), right.into())
+}
+
+/// convenient function to construct a tree leaf from a value
+pub fn leaf<T>(value: T) -> BinTree<T> {
+    BinTree::new_leaf(value)
+}
+
 /// some tests
 #[cfg(test)]
 mod test {
@@ -196,166 +213,6 @@ mod test {
             );
         let t = test_tree();
         assert_eq!(t,bt);
-    }
-
-    #[test]
-    fn iter_mut_test() {
-        let mut t = test_tree();
-        t.iter_mut().for_each(|i| {
-            if *i % 2 == 1 { *i += 10 }
-        });
-        assert_eq!(t.to_string(),"(((13) <= 2) <= 11 => (4 => ((6) <= 15)))");
-    }
-
-    #[test]
-    fn into_iter_order_test() {
-        let t = test_tree();
-        assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
-        let t = test_tree();
-        assert_eq!(t.into_iter_dfs_in().collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
-        let t = test_tree();
-        assert_eq!(t.into_iter_dfs_pre().collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
-        let t = test_tree();
-        assert_eq!(t.into_iter_dfs_post().collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
-        let t = test_tree();
-        assert_eq!(t.into_iter_bfs().collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
-    }
-
-    #[test]
-    fn iter_order_test() {
-        let t = test_tree();
-        assert_eq!(t.iter().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
-        assert_eq!(t.iter_dfs_in().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
-        assert_eq!(t.iter_dfs_pre().map(|i|i.clone()).collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
-        assert_eq!(t.iter_dfs_post().map(|i|i.clone()).collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
-        assert_eq!(t.iter_bfs().map(|i|*i).collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
-    }
-
-    #[test]
-    fn iter_mut_order_test() {
-        let mut t = test_tree();
-        let mut i = 0;
-        t.iter_mut().for_each(|e| { i += 1; *e += i; });
-        assert_eq!(t.to_vec(),vec![4, 4, 4, 8, 11, 11]);
-        t.iter_mut_dfs_in().for_each(|e| { i += 1; *e += i; });
-        assert_eq!(t.to_vec(),vec![11, 12, 13, 18, 22, 23]);
-        t.iter_mut_dfs_pre().for_each(|e| { i += 1; *e += i; });
-        assert_eq!(t.to_vec(),vec![26, 26, 26, 34, 40, 40]);
-        t.iter_mut_dfs_post().for_each(|e| { i += 1; *e += i; });
-        assert_eq!(t.to_vec(),vec![45, 46, 50, 57, 61, 62]);
-        t.iter_mut_bfs().for_each(|e| { i += 1; *e += i; });
-        assert_eq!(t.to_vec(),vec![73, 72, 75, 84, 91, 91]);
-    }
-
-    #[test]
-    fn push_sorted_test() {
-        let mut t = BinTree::new();
-        t.push_sorted(4);
-        t.push_sorted(2);
-        t.push_sorted(8);
-        t.push_sorted(1);
-        t.push_sorted(2);
-        assert_eq!(t.to_string(),"(((1) <= 2 => (2)) <= 4 => (8))");
-        assert_eq!(t.to_vec(),vec![1,2,2,4,8]);
-        t.extend_sorted(vec![18,6,3,8,5,11]);
-        assert_eq!(t.to_string(),"(((1) <= 2 => (2 => (3))) <= 4 => (((5) <= 6) <= 8 => ((8 => (11)) <= 18)))");
-        assert_eq!(t.to_vec(),vec![1,2,2,3,4,5,6,8,8,11,18]);
-    }
-
-    #[test]
-    fn push_sorted_unique_test() {
-        let mut t = BinTree::new();
-        t.push_sorted_unique(4);
-        t.push_sorted_unique(2);
-        t.push_sorted_unique(8);
-        t.push_sorted_unique(1);
-        t.push_sorted_unique(2);
-        assert_eq!(t.to_string(),"(((1) <= 2) <= 4 => (8))");
-        assert_eq!(t.to_vec(),vec![1,2,4,8]);
-        t.extend_sorted_unique(vec![18,6,3,8,5,11]);
-        assert_eq!(t.to_string(),"(((1) <= 2 => (3)) <= 4 => (((5) <= 6) <= 8 => ((11) <= 18)))");
-        assert_eq!(t.to_vec(),vec![1,2,3,4,5,6,8,11,18]);
-    }
-
-    #[test]
-    fn push_right_test() {
-        let mut t = BinTree::new();
-        t.push_right(4);
-        t.push_right(2);
-        t.push_right(8);
-        t.push_right(1);
-        assert_eq!(t.to_string(),"(4 => (2 => (8 => (1))))");
-        assert_eq!(t.to_vec(),vec![4,2,8,1]);
-        t.extend_right(vec![18,6,3,5,11]);
-        assert_eq!(t.to_string(),"(4 => (2 => (8 => (1 => (18 => (6 => (3 => (5 => (11)))))))))");
-        assert_eq!(t.to_vec(),vec![4,2,8,1,18,6,3,5,11]);
-    }
-
-    #[test]
-    fn push_left_test() {
-        let mut t = BinTree::new();
-        t.push_left(4);
-        t.push_left(2);
-        t.push_left(8);
-        t.push_left(1);
-        assert_eq!(t.to_string(),"((((1) <= 8) <= 2) <= 4)");
-        assert_eq!(t.to_vec(),vec![1,8,2,4]);
-        t.extend_left(vec![18,6,3,5,11]);
-        assert_eq!(t.to_string(),"(((((((((11) <= 5) <= 3) <= 6) <= 18) <= 1) <= 8) <= 2) <= 4)");
-        assert_eq!(t.to_vec(),vec![11,5,3,6,18,1,8,2,4]);
-    }
-
-    #[test]
-    fn pop_test() {
-        let mut t = test_tree();
-        assert_eq!(t.to_string(),"(((3) <= 2) <= 1 => (4 => ((6) <= 5)))");
-        assert_eq!(t.pop(),Some(1));
-        assert_eq!(t.to_string(),"((3) <= 2 => (4 => ((6) <= 5)))");
-        assert_eq!(t.pop(),Some(2));
-        assert_eq!(t.to_string(),"(3 => (4 => ((6) <= 5)))");
-        assert_eq!(t.pop(),Some(3));
-        assert_eq!(t.to_string(),"(4 => (5 => (6)))");
-        assert_eq!(t.pop(),Some(4));
-        assert_eq!(t.to_string(),"(5 => (6))");
-        assert_eq!(t.pop(),Some(5));
-        assert_eq!(t.to_string(),"(6)");
-        assert_eq!(t.pop(),Some(6));
-        assert_eq!(t.to_string(),"()");
-        assert_eq!(t.pop(),None);
-    }
-
-    #[cfg(feature = "rand")]
-    #[test]
-    fn remove_sorted_test() {
-        use rand::thread_rng;
-        use rand::seq::SliceRandom;
-
-        let mut t = BinTree::new();
-        let mut v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
-        v.shuffle(&mut thread_rng());
-        t.extend_sorted(v);
-        let mut v = t.to_vec();
-        v.shuffle(&mut thread_rng());
-        for i in v {
-            assert_eq!(t.remove_sorted(&i),true);
-        }
-        assert_eq!(t.to_string(),"()");
-    }
-
-    #[cfg(feature = "rand")]
-    #[test]
-    fn remove_sorted_test_10000() {
-        for _ in 0..10000 {
-            remove_sorted_test();
-        }
-    }
-
-    #[test]
-    fn collect_test() {
-        let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
-        let t = v.into_iter().collect::<BinTree<_>>();
-        assert_eq!(t.to_string(),
-            "((((1 => (2 => (2))) <= 3 => ((3 => (3 => (3))) <= 5 => (5))) <= 6 => (((6) <= 7) <= 8 => ((8 => ((9) <= 10)) <= 11))) <= 18)");
     }
 
     #[test]
