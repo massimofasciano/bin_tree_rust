@@ -319,6 +319,7 @@ mod test {
             "[ValueType(-182), ValueType(234), ValueType(782), ValueType(14), ValueType(-1), ValueType(-2), ValueType(-1782)]");
 
         *t.get_mut(&KeyType(110)).unwrap() = ValueType(-110);
+        assert_eq!(t.len(),7);
         assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![
             (KeyType(-876), ValueType(-182)), 
             (KeyType(-40), ValueType(234)), 

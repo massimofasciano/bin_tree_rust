@@ -21,6 +21,10 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
     pub fn new() -> Self {
         Self::default()
     }
+    /// number of elements in the set
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
     /// set insertion (uses push_ordered_unique tree method)
     pub fn insert(&mut self, value : Item) {
         self.data.push_sorted_unique(value);
@@ -143,5 +147,6 @@ mod test {
         assert_eq!(s.to_tree_string(),str1);
         let str2 = s.iter().collect::<String>();
         assert_eq!(str2," !,HJaeilmnosy");
+        assert_eq!(s.len(),14);
     }
 }
