@@ -18,3 +18,26 @@ pub use bin_tree_formatted::*;
 pub mod ordered_set;
 pub use ordered_set::*;
 
+#[macro_export]
+/// split a non-empty tree into the 3 components (value, left, right): &mut version
+macro_rules! let_node_ref_mut {
+    ($tree:expr => $value:ident , $left:ident, $right:ident) => {
+        let crate::BinTreeNode{value:$value,left:$left,right:$right} = $tree.root.as_deref_mut().expect("tree should not be empty");
+    };
+}
+
+#[macro_export]
+/// split a non-empty tree into the 3 components (value, left, right): & version
+macro_rules! let_node_ref {
+    ($tree:expr => $value:ident , $left:ident, $right:ident) => {
+        let crate::BinTreeNode{value:$value,left:$left,right:$right} = $tree.root.as_deref().expect("tree should not be empty");
+    };
+}
+
+#[macro_export]
+/// split a non-empty tree into the 3 components (value, left, right): move version
+macro_rules! let_node_move {
+    ($tree:expr => $value:ident , $left:ident, $right:ident) => {
+        let crate::BinTreeNode{value:$value,left:$left,right:$right} = *($tree.root).expect("tree should not be empty");
+    };
+}

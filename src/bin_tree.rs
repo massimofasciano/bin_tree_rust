@@ -2,15 +2,15 @@
 #[derive(Debug,Clone,PartialEq)]
 #[repr(transparent)]
 pub struct BinTree<Item> {
-    root: Option<Box<BinTreeNode<Item>>>
+    pub root: Option<Box<BinTreeNode<Item>>>
 }
 
 /// a general purpose binary tree node
 #[derive(Debug,Clone,PartialEq)]
-struct BinTreeNode<Item> {
-    value : Item,
-    left : BinTree<Item>,
-    right : BinTree<Item>,
+pub struct BinTreeNode<Item> {
+    pub value : Item,
+    pub left : BinTree<Item>,
+    pub right : BinTree<Item>,
 }
 
 impl<Item> BinTree<Item> {
@@ -45,15 +45,15 @@ impl<Item> BinTree<Item> {
     pub fn is_node(&self) -> bool {
         !self.is_empty()
     }
-    /// returns a ref to the 3 elements of the node at the top of the tree (if not empty)
-    pub fn node(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
-        if self.is_empty() {
-            None
-        } else {
-            let tree = self.root.as_deref().unwrap();
-            Some((&tree.value,&tree.left,&tree.right))
-        }
-    }
+    // /// returns a ref to the 3 elements of the node at the top of the tree (if not empty)
+    // pub fn node(&self) -> Option<(&Item,&BinTree<Item>,&BinTree<Item>)> {
+    //     if self.is_empty() {
+    //         None
+    //     } else {
+    //         let tree = self.root.as_deref().unwrap();
+    //         Some((&tree.value,&tree.left,&tree.right))
+    //     }
+    // }
     /// returns a ref to the value at the top of the tree
     pub fn value(&self) -> Option<&Item> {
         if self.is_empty() {

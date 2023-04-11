@@ -1,4 +1,4 @@
-use crate::BinTree;
+use crate::{BinTree, let_node_ref_mut, let_node_ref};
 
 impl<Item> Default for BinTree<Item> {
     /// default is an empty tree
@@ -19,21 +19,21 @@ impl<Item> BinTree<Item> {
     pub fn write_line(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
         where Item : std::fmt::Debug 
     {
-        if let Some((item, left, right)) = self.node() {
+        if self.is_empty() {
+            write!(f,"()")
+        } else {
+            let_node_ref!(self => value, left, right);
             write!(f,"(")?;
             if !left.is_empty() {
                 left.write_line(f)?;
                 write!(f," <= ")?;
             }
-            write!(f,"{:?}",item)?;
+            write!(f,"{:?}",value)?;
             if !right.is_empty() {
                 write!(f," => ")?;
                 right.write_line(f)?;
             }
             write!(f,")")
-        } else {
-            // empty tree
-            write!(f,"()")
         }
     }
     /// display a tree on multiple lines with a configurable tab (indent)
@@ -45,13 +45,13 @@ impl<Item> BinTree<Item> {
     fn pretty_write_indent(&self, f: &mut std::fmt::Formatter<'_>, tab : &str, indent : usize) -> std::fmt::Result
         where Item : std::fmt::Debug 
     {
-        if let Some((item, left, right)) = self.node() {
-            right.pretty_write_indent(f, tab, indent+1)?;
-            write!(f,"{}{:?}\n",tab.repeat(indent),item)?;
-            left.pretty_write_indent(f, tab, indent+1)
-        } else {
-            // empty
+        if self.is_empty() {
             write!(f,"{}{}\n",tab.repeat(indent),"@")
+        } else {
+            let_node_ref!(self => value, left, right);
+            right.pretty_write_indent(f, tab, indent+1)?;
+            write!(f,"{}{:?}\n",tab.repeat(indent),value)?;
+            left.pretty_write_indent(f, tab, indent+1)
         }
     }
 }
@@ -285,29 +285,29 @@ impl<Item> BinTree<Item> {
         }
     }
     /// find a value in a sorted tree
-    pub fn contains_sorted(&self, value : &Item) -> bool where Item : PartialOrd {
-        if let Some((item, left, right)) = self.node() {
-            if *value < *item {
-                left.contains_sorted(value)
-            } else if *value > *item {
-                right.contains_sorted(value)
+    pub fn contains_sorted(&self, target_value : &Item) -> bool where Item : PartialOrd {
+        if self.is_empty() {
+            false
+        } else {
+            let_node_ref!(self => value, left, right);
+            if *target_value < *value {
+                left.contains_sorted(target_value)
+            } else if *target_value > *value {
+                right.contains_sorted(target_value)
             } else {
                 true
             }
-        } else {
-            // empty
-            false
         }
     }
     /// find a value in a tree (no ordering assumed)
-    pub fn contains(&self, value : &Item) -> bool where Item : PartialEq {
-        if let Some((item, left, right)) = self.node() {
-            value == item || 
-            left.contains(value) || 
-            right.contains(value)
-        } else {
-            // empty
+    pub fn contains(&self, target_value : &Item) -> bool where Item : PartialEq {
+        if self.is_empty() {
             false
+        } else {
+            let_node_ref!(self => value, left, right);
+            target_value == value || 
+            left.contains(target_value) || 
+            right.contains(target_value)
         }
     }
     /// find a value in a tree and return mutable ref (no ordering assumed)
@@ -327,28 +327,19 @@ impl<Item> BinTree<Item> {
             None
         }
     }
-    /// find a value in a tree and return mutable ptr to the subtree (no ordering assumed)
-    fn get_tree_ptr(&mut self, value : &Item) -> Option<*mut BinTree<Item>> where Item : PartialEq {
+    /// find a value in a tree and return mutable ref to the subtree (no ordering assumed)
+    pub fn get_tree_mut(&mut self, target_value : &Item) -> Option<&mut BinTree<Item>> where Item : PartialEq {
         if self.is_empty() {
             None
-        } else if value == self.value().unwrap() {
+        } else if target_value == self.value().unwrap() {
             Some(self)
-        } else if let Some(left_ptr) = self.left_mut().unwrap().get_tree_ptr(value) {
-            Some(left_ptr)
         } else {
-            self.right_mut().unwrap().get_tree_ptr(value)
-        }
-    }
-    /// find a value in a tree and return mutable ref to the subtree (no ordering assumed)
-    pub fn get_tree_mut(&mut self, value : &Item) -> Option<&mut BinTree<Item>> where Item : PartialEq {
-        if let Some(ptr) = self.get_tree_ptr(value) {
-            // This is safe because the mutable reference in get_tree_ptr is never modified.
-            // We use a mut pointer in get_tree_ptr to avoid the double mut borrow issue on self.
-            // We only ever borrow left or right but not both but the compiler assumes all of self is borrowed.
-            // The issue comes from using mut "getters" (left_mut and right_mut).
-            Some(unsafe{&mut *ptr})
-        } else {
-            None
+            let_node_ref_mut!(self => _value, left, right);
+            let mut tree = left.get_tree_mut(target_value);
+            if tree.is_none() {
+                tree = right.get_tree_mut(target_value);
+            }
+            tree
         }
     }
     /// find a value in a sorted tree and return mutable ref
