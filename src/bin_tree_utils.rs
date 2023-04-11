@@ -168,7 +168,7 @@ impl<Item> BinTree<Item> {
     }
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
-    pub fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+    fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
         if self.is_leaf() {
             Some(self)
         } else if self.is_branch() {
@@ -186,7 +186,7 @@ impl<Item> BinTree<Item> {
     }
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted (using key)
-    pub fn min_tree_mut_with_key<F,Key>(&mut self, key: &F) -> Option<&mut BinTree<Item>> where 
+    fn min_tree_mut_with_key<F,Key>(&mut self, key: &F) -> Option<&mut BinTree<Item>> where 
         Key : PartialOrd,
         F : Fn(&Item) -> &Key,
     {
@@ -199,24 +199,6 @@ impl<Item> BinTree<Item> {
             } else {
                 // min from left path
                 self.left_mut().unwrap().min_tree_mut_with_key(key)
-            }
-        } else {
-            None
-        }
-    }
-    /// returns the mutable tree node containing the maximum value item
-    /// assumes that the tree is sorted
-    pub fn max_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
-        if self.is_leaf() {
-            Some(self)
-        } else if self.is_branch() {
-            if self.right().unwrap().is_empty() {
-                // no right path
-                Some(self)
-            } else {
-                // max from right path
-                self.right_mut().unwrap().max_tree_mut()
-
             }
         } else {
             None
@@ -296,6 +278,24 @@ impl<Item> BinTree<Item> {
                 left.get_sorted_with_key(target_value,key)
             } else if target_value > key(value) {
                 right.get_sorted_with_key(target_value,key)
+            } else {
+                Some(value)
+            }
+        }
+    }
+    /// find a value in a sorted tree with a key function and return mut ref
+    pub fn get_sorted_mut_with_key<F,Key>(&mut self, target_value : &Key, key : &F) -> Option<&mut Item> where
+        Key : PartialOrd,
+        F : Fn(&Item) -> &Key
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if target_value < key(value) {
+                left.get_sorted_mut_with_key(target_value,key)
+            } else if target_value > key(value) {
+                right.get_sorted_mut_with_key(target_value,key)
             } else {
                 Some(value)
             }

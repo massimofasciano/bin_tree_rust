@@ -56,6 +56,14 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
             None
         }
     }
+    /// get mut value by key from the map
+    pub fn get_mut(&mut self, key: &Key) -> Option<&mut Value> {
+        if let Some(kv) = self.data.get_sorted_mut_with_key(key, &|kv|&kv.key) {
+            Some(&mut kv.value)
+        } else {
+            None
+        }
+    }
     /// check if map contains key
     pub fn contains_key(&self, key: &Key) -> bool {
         self.get(key).is_some()
@@ -260,5 +268,15 @@ mod test {
                 (BinTreeMapKeyVal { key: KeyType(130), value: ValueType(-2) }))) <= \
                 BinTreeMapKeyVal { key: KeyType(3330), value: ValueType(-1782) }))\
             ");
+
+        *t.get_mut(&KeyType(110)).unwrap() = ValueType(-110);
+        assert_eq!(t.into_iter().collect::<Vec<_>>(),vec![
+            (KeyType(-876), ValueType(-182)), 
+            (KeyType(-40), ValueType(234)), 
+            (KeyType(-20), ValueType(782)), 
+            (KeyType(33), ValueType(14)), 
+            (KeyType(110), ValueType(-110)), 
+            (KeyType(130), ValueType(-2)), 
+            (KeyType(3330), ValueType(-1782))]);
     }
 }
