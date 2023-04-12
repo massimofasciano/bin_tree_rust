@@ -2,7 +2,7 @@ use crate::{BinTree, BinTreeIter, BinTreeIterMut, BinTreeIntoIter};
 
 /// node type for BinTreeMap
 #[derive(Debug,Clone,Default)]
-pub struct BinTreeMapKeyVal<Key,Value> where Key : PartialOrd {
+pub struct BinTreeMapEntry<Key,Value> where Key : PartialOrd {
     key: Key,
     value: Value,
 }
@@ -11,7 +11,7 @@ pub struct BinTreeMapKeyVal<Key,Value> where Key : PartialOrd {
 #[derive(Debug,Clone)]
 #[repr(transparent)]
 pub struct BinTreeMap<Key,Value> where Key : PartialOrd {
-    data: BinTree<BinTreeMapKeyVal<Key,Value>>
+    data: BinTree<BinTreeMapEntry<Key,Value>>
 }
 
 /// default set is an empty tree
@@ -22,7 +22,16 @@ impl<Key : PartialOrd, Value> Default for BinTreeMap<Key,Value> {
         }
     }
 }
-
+impl<Key : PartialOrd, Value> PartialEq for BinTreeMapEntry<Key,Value> {
+    fn eq(&self, other: &Self) -> bool {
+        self.key == other.key
+    }
+}
+impl<Key : PartialOrd, Value> PartialOrd for BinTreeMapEntry<Key,Value> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.key.partial_cmp(&other.key)
+    }
+}
 impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     /// empty tree
     pub fn new() -> Self {
@@ -38,7 +47,8 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
-        self.data.push_sorted_unique_with_key(BinTreeMapKeyVal{key,value},&|kv|&kv.key);
+        // self.data.push_sorted_unique_with_key(BinTreeMapEntry{key,value},&|kv|&kv.key);
+        self.data.push_sorted_unique(BinTreeMapEntry{key,value});
     }
     /// get a value by key from the map
     pub fn get(&self, key: &Key) -> Option<&Value> {
@@ -50,8 +60,9 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// get (key,value) by key from the map
     pub fn get_key_value(&self, key: &Key) -> Option<(&Key, &Value)> {
+        // if let Some(kv) = self.data.get_sorted_with_key(key, &|kv|&kv.key) {
         if let Some(kv) = self.data.get_sorted_with_key(key, &|kv|&kv.key) {
-            Some((&kv.key,&kv.value))
+                Some((&kv.key,&kv.value))
         } else {
             None
         }
@@ -69,11 +80,11 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
         self.get(key).is_some()
     }
     /// transforms the map into the wrapped binary tree
-    pub fn into_inner(self) -> BinTree<BinTreeMapKeyVal<Key,Value>> {
+    pub fn into_inner(self) -> BinTree<BinTreeMapEntry<Key,Value>> {
         self.data
     }
     /// returns a ref to the wrapped binary tree
-    pub fn inner(&self) -> &BinTree<BinTreeMapKeyVal<Key,Value>> {
+    pub fn inner(&self) -> &BinTree<BinTreeMapEntry<Key,Value>> {
         &self.data
     }
     pub fn to_tree_string(&self) -> String where Key: std::fmt::Debug, Value : std::fmt::Debug {
@@ -127,14 +138,14 @@ impl<Key: PartialOrd,Value> IntoIterator for BinTreeMap<Key,Value> {
 /// into_iter for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
 pub struct BinTreeMapIntoIter<K,V> where K : PartialOrd {
-    iter: BinTreeIntoIter<BinTreeMapKeyVal<K,V>>
+    iter: BinTreeIntoIter<BinTreeMapEntry<K,V>>
 }
 
 impl<K : PartialOrd,V> Iterator for BinTreeMapIntoIter<K,V> {
     type Item = (K, V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(BinTreeMapKeyVal{key,value}) = self.iter.next() {
+        if let Some(BinTreeMapEntry{key,value}) = self.iter.next() {
             Some((key,value))
         } else {
             None
@@ -154,14 +165,14 @@ impl<'a,Key: PartialOrd,Value> IntoIterator for &'a BinTreeMap<Key,Value> {
 /// iter for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
 pub struct BinTreeMapIter<'a,K,V> where K : PartialOrd {
-    iter: BinTreeIter<'a,BinTreeMapKeyVal<K,V>>
+    iter: BinTreeIter<'a,BinTreeMapEntry<K,V>>
 }
 
 impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIter<'a,K,V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(BinTreeMapKeyVal{key,value}) = self.iter.next() {
+        if let Some(BinTreeMapEntry{key,value}) = self.iter.next() {
             Some((key,value))
         } else {
             None
@@ -181,14 +192,14 @@ impl<'a,Key: PartialOrd,Value> IntoIterator for &'a mut BinTreeMap<Key,Value> {
 /// iter_mut for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
 pub struct BinTreeMapIterMut<'a,K,V> where K : PartialOrd {
-    iter: BinTreeIterMut<'a,BinTreeMapKeyVal<K,V>>
+    iter: BinTreeIterMut<'a,BinTreeMapEntry<K,V>>
 }
 
 impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterMut<'a,K,V> {
     type Item = (&'a K, &'a mut V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(BinTreeMapKeyVal{key,value}) = self.iter.next() {
+        if let Some(BinTreeMapEntry{key,value}) = self.iter.next() {
             Some((key,value))
         } else {
             None
@@ -199,14 +210,14 @@ impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterMut<'a,K,V> {
 /// keys iter for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
 pub struct BinTreeMapIterKeys<'a,K,V> where K : PartialOrd {
-    iter: BinTreeIter<'a,BinTreeMapKeyVal<K,V>>
+    iter: BinTreeIter<'a,BinTreeMapEntry<K,V>>
 }
 
 impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterKeys<'a,K,V> {
     type Item = &'a K;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(BinTreeMapKeyVal{key,value: _}) = self.iter.next() {
+        if let Some(BinTreeMapEntry{key,value: _}) = self.iter.next() {
             Some(key)
         } else {
             None
@@ -217,14 +228,14 @@ impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterKeys<'a,K,V> {
 /// values iter for BinTreeMap (uses BinTree iterator)
 #[repr(transparent)]
 pub struct BinTreeMapIterValues<'a,K,V> where K : PartialOrd {
-    iter: BinTreeIter<'a,BinTreeMapKeyVal<K,V>>
+    iter: BinTreeIter<'a,BinTreeMapEntry<K,V>>
 }
 
 impl<'a,K : PartialOrd,V> Iterator for BinTreeMapIterValues<'a,K,V> {
     type Item = &'a V;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(BinTreeMapKeyVal{key: _,value}) = self.iter.next() {
+        if let Some(BinTreeMapEntry{key: _,value}) = self.iter.next() {
             Some(value)
         } else {
             None
@@ -262,8 +273,8 @@ mod test {
 
         assert_eq!(map.to_tree_string(),
             "((\
-                BinTreeMapKeyVal { key: 31, value: \"value for 31 is less than 50\" }) <= \
-                BinTreeMapKeyVal { key: 67, value: \"second value for 67\" }\
+                BinTreeMapEntry { key: 31, value: \"value for 31 is less than 50\" }) <= \
+                BinTreeMapEntry { key: 67, value: \"second value for 67\" }\
             )");
         assert_eq!(map.remove(&31).unwrap(),"value for 31 is less than 50");
         assert_eq!(map.to_string(),"[(67, \"second value for 67\")]");
@@ -291,26 +302,26 @@ mod test {
         t.insert(KeyType(-876), ValueType(-182));
 
         assert_eq!(t.to_tree_string(),"\
-                (((BinTreeMapKeyVal { key: KeyType(-876), value: ValueType(-182) }) <= \
-                BinTreeMapKeyVal { key: KeyType(-40), value: ValueType(234) }) <= \
-                BinTreeMapKeyVal { key: KeyType(-20), value: ValueType(782) } => \
-                (((BinTreeMapKeyVal { key: KeyType(12), value: ValueType(82) }) <= \
-                BinTreeMapKeyVal { key: KeyType(33), value: ValueType(14) } => \
-                (BinTreeMapKeyVal { key: KeyType(110), value: ValueType(-1) } => \
-                (BinTreeMapKeyVal { key: KeyType(130), value: ValueType(-2) }))) <= \
-                BinTreeMapKeyVal { key: KeyType(3330), value: ValueType(-1782) }))\
+                (((BinTreeMapEntry { key: KeyType(-876), value: ValueType(-182) }) <= \
+                BinTreeMapEntry { key: KeyType(-40), value: ValueType(234) }) <= \
+                BinTreeMapEntry { key: KeyType(-20), value: ValueType(782) } => \
+                (((BinTreeMapEntry { key: KeyType(12), value: ValueType(82) }) <= \
+                BinTreeMapEntry { key: KeyType(33), value: ValueType(14) } => \
+                (BinTreeMapEntry { key: KeyType(110), value: ValueType(-1) } => \
+                (BinTreeMapEntry { key: KeyType(130), value: ValueType(-2) }))) <= \
+                BinTreeMapEntry { key: KeyType(3330), value: ValueType(-1782) }))\
             ");
 
         assert_eq!(t.remove(&KeyType(12)).unwrap(),ValueType(82));
 
         assert_eq!(t.to_tree_string(),"\
-                (((BinTreeMapKeyVal { key: KeyType(-876), value: ValueType(-182) }) <= \
-                BinTreeMapKeyVal { key: KeyType(-40), value: ValueType(234) }) <= \
-                BinTreeMapKeyVal { key: KeyType(-20), value: ValueType(782) } => \
-                ((BinTreeMapKeyVal { key: KeyType(33), value: ValueType(14) } => \
-                (BinTreeMapKeyVal { key: KeyType(110), value: ValueType(-1) } => \
-                (BinTreeMapKeyVal { key: KeyType(130), value: ValueType(-2) }))) <= \
-                BinTreeMapKeyVal { key: KeyType(3330), value: ValueType(-1782) }))\
+                (((BinTreeMapEntry { key: KeyType(-876), value: ValueType(-182) }) <= \
+                BinTreeMapEntry { key: KeyType(-40), value: ValueType(234) }) <= \
+                BinTreeMapEntry { key: KeyType(-20), value: ValueType(782) } => \
+                ((BinTreeMapEntry { key: KeyType(33), value: ValueType(14) } => \
+                (BinTreeMapEntry { key: KeyType(110), value: ValueType(-1) } => \
+                (BinTreeMapEntry { key: KeyType(130), value: ValueType(-2) }))) <= \
+                BinTreeMapEntry { key: KeyType(3330), value: ValueType(-1782) }))\
             ");
 
         assert_eq!(format!("{:?}",t.keys().collect::<Vec<_>>()),
