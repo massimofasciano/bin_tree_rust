@@ -16,7 +16,7 @@ pub struct BinTreeNode<Item> {
 impl<Item> BinTree<Item> {
     /// creates a branch
     pub fn new_node(value : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
-        let height = left.height + right.height + 1;
+        let height = left.height() + right.height() + 1;
         Self { 
             root : Some(Box::new(BinTreeNode{value, left, right})), 
             height,
@@ -29,6 +29,10 @@ impl<Item> BinTree<Item> {
     /// creates an empty tree
     pub fn new() -> Self {
         Self { root : None, height : 0 }
+    }
+    /// height of tree
+    pub fn height(&self) -> usize {
+        self.height
     }
     /// tests if tree is a branch (leaf is excluded although it is stored as a branch with empty children internally)
     pub fn is_branch(&self) -> bool {
