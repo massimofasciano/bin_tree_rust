@@ -60,6 +60,18 @@ fn demo() {
         }
     }
     assert_eq!(t.to_vec(),vec![1,2,1,4,2,5]);
+
+    // basic remove for unsorted trees (a faster version is available for sorted trees)
+    assert_eq!(t.remove(&1),Some(1));    
+    assert_eq!(t.to_vec(),vec![1,2,4,2,5]);
+    assert_eq!(t.remove(&1),Some(1));    
+    assert_eq!(t.to_vec(),vec![2,4,2,5]);
+    assert_eq!(t.remove(&1),None);    
+    assert_eq!(t.to_vec(),vec![2,4,2,5]);
+    for i in t.to_vec() {
+        assert_eq!(t.remove(&i),Some(i));    
+    }
+    assert_eq!(t.is_empty(),true);
     
     // binary tree ordered set
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];

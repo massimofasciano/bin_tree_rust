@@ -204,6 +204,23 @@ impl<Item> BinTree<Item> {
             None
         }
     }
+    /// try to remove value from a tree
+    pub fn remove(&mut self, target_value : &Item) -> Option<Item> where Item : PartialEq + Default {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if *target_value == *value {
+                self.pop()
+            } else {
+                let mut r = left.remove(target_value);
+                if r.is_none() {
+                    r = right.remove(target_value);
+                }
+                r
+            }
+        }
+    }
     /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd + Default {
         if self.is_empty() {
