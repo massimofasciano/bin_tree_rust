@@ -104,5 +104,4 @@ fn demo() {
     assert_eq!(t.to_string(),"[('a', 500), ('b', 1790), ('c', 782)]");
     assert_eq!(t.remove(&'b'),Some(1790));
     assert_eq!(t.to_string(),"[('a', 500), ('c', 782)]");
-
 }

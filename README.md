@@ -81,6 +81,12 @@ fn demo() {
     // by wrapping in an ordered set or map, we avoid these issues (see below)
     assert_eq!(t.contains_sorted(&5),true);
     
+    // iterators with 4 traversal orders (breadth-first, depth-first: in, pre, post-order)
+    assert_eq!(t.iter_bfs().map(|x|x.clone()).collect::<Vec<_>>(),vec![1, 2, 4, 3, 5, 6]);
+    assert_eq!(t.iter_dfs_in().map(|x|x.clone()).collect::<Vec<_>>(),vec![3, 2, 1, 4, 6, 5]);
+    assert_eq!(t.iter_dfs_pre().map(|x|x.clone()).collect::<Vec<_>>(),vec![1, 2, 3, 4, 5, 6]);
+    assert_eq!(t.iter_dfs_post().map(|x|x.clone()).collect::<Vec<_>>(),vec![3, 2, 6, 5, 4, 1]);
+
     // binary tree iter_mut
     for i in t.iter_mut() {
         print!("{}",i);
@@ -89,6 +95,18 @@ fn demo() {
         }
     }
     assert_eq!(t.to_vec(),vec![1,2,1,4,2,5]);
+
+    // basic remove for unsorted trees (a faster version is available for sorted trees)
+    assert_eq!(t.remove(&1),Some(1));    
+    assert_eq!(t.to_vec(),vec![1,2,4,2,5]);
+    assert_eq!(t.remove(&1),Some(1));    
+    assert_eq!(t.to_vec(),vec![2,4,2,5]);
+    assert_eq!(t.remove(&1),None);    
+    assert_eq!(t.to_vec(),vec![2,4,2,5]);
+    for i in t.to_vec() {
+        assert_eq!(t.remove(&i),Some(i));    
+    }
+    assert_eq!(t.is_empty(),true);
     
     // binary tree ordered set
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
@@ -101,7 +119,7 @@ fn demo() {
     assert_eq!(t.contains(&10),true);
     assert_eq!(t.contains(&4),false);
     
-    assert_eq!(t.remove(&7),true);
+    assert_eq!(t.remove(&7),Some(7));
     assert_eq!(format!("{}",t),"[1, 2, 3, 5, 6, 8, 9, 10, 11, 18]");
     assert_eq!(t.to_tree_string(),
         "((((1 => (2)) <= 3 => (5)) <= 6 => (8 => (((9) <= 10) <= 11))) <= 18)");
@@ -115,7 +133,7 @@ fn demo() {
     assert_eq!(t.contains_key(&'b'),true);
     assert_eq!(t.contains_key(&'z'),false);
     assert_eq!(t.get(&'a'),Some(&782));
-    assert_eq!(t.swap(&'a', &'c'),true);
+    assert_eq!(t.swap(&'a', &'c'),Ok(()));
     assert_eq!(t.to_string(),"[('a', 500), ('b', 1782), ('c', 782)]");
     *t.get_mut(&'b').unwrap() += 8;
     assert_eq!(t.to_string(),"[('a', 500), ('b', 1790), ('c', 782)]");
