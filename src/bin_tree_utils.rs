@@ -600,17 +600,24 @@ mod test {
         assert_eq!(t.pop(),None);
     }
 
-    #[cfg(feature = "rand")]
+    // to enable randomized order, test with 
+    // cargo test --features rand to enable (or --all-features)
     #[test]
     fn remove_sorted_test() {
+        #[cfg(feature = "rand")]
         use rand::thread_rng;
+        #[cfg(feature = "rand")]
         use rand::seq::SliceRandom;
 
         let mut t = BinTree::new();
+        #[allow(unused_mut)]
         let mut v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
+        #[cfg(feature = "rand")]
         v.shuffle(&mut thread_rng());
         t.extend_sorted(v);
+        #[allow(unused_mut)]
         let mut v = t.to_vec();
+        #[cfg(feature = "rand")]
         v.shuffle(&mut thread_rng());
         for i in v {
             assert_eq!(t.remove_sorted(&i),Some(i));
