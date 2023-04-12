@@ -73,4 +73,26 @@ mod test {
         ]");
 
     }
+
+    #[test]
+    fn big_swap_test() {
+        let mut m = BinTreeMap::new();
+
+        m.insert("hello", String::from("a big string for my test"));
+        m.insert("there", String::from("another big string for my test"));
+        m.insert("world", String::from("yet another big string for my test"));
+
+        assert_eq!(m.to_string(),"[\
+            (\"hello\", \"a big string for my test\"), \
+            (\"there\", \"another big string for my test\"), \
+            (\"world\", \"yet another big string for my test\")\
+        ]");
+
+        m.swap(&"hello", &"world").unwrap();
+        assert_eq!(m.to_string(),"[\
+            (\"hello\", \"yet another big string for my test\"), \
+            (\"there\", \"another big string for my test\"), \
+            (\"world\", \"a big string for my test\")\
+        ]");
+    }
 }
