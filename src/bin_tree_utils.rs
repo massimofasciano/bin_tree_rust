@@ -108,6 +108,8 @@ impl<Item> BinTree<Item> {
                 left.push_sorted_unique(new_item);
             } else if new_item > *item {
                 right.push_sorted_unique(new_item);
+            } else {
+                *item = new_item;
             }
         }
     }
