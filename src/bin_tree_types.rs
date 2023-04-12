@@ -1,8 +1,8 @@
 /// a general purpose binary tree
 #[derive(Debug,Clone,PartialEq)]
-#[repr(transparent)]
 pub struct BinTree<Item> {
-    pub root: Option<Box<BinTreeNode<Item>>>
+    pub root: Option<Box<BinTreeNode<Item>>>,
+    pub height: usize, // this field is only updated when representing balanced trees
 }
 
 /// a general purpose binary tree node
@@ -16,7 +16,11 @@ pub struct BinTreeNode<Item> {
 impl<Item> BinTree<Item> {
     /// creates a branch
     pub fn new_node(value : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
-        Self { root : Some(Box::new(BinTreeNode{value, left, right}))}
+        let height = left.height + right.height + 1;
+        Self { 
+            root : Some(Box::new(BinTreeNode{value, left, right})), 
+            height,
+        }
     }
     /// creates a leaf
     pub fn new_leaf(item : Item) -> Self {
@@ -24,7 +28,7 @@ impl<Item> BinTree<Item> {
     }
     /// creates an empty tree
     pub fn new() -> Self {
-        Self { root : None }
+        Self { root : None, height : 0 }
     }
     /// tests if tree is a branch (leaf is excluded although it is stored as a branch with empty children internally)
     pub fn is_branch(&self) -> bool {
