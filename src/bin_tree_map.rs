@@ -9,16 +9,17 @@ pub struct BinTreeMapEntry<Key,Value> where Key : PartialOrd {
 
 /// a basic map implementation using BinTree
 #[derive(Debug,Clone)]
-#[repr(transparent)]
 pub struct BinTreeMap<Key,Value> where Key : PartialOrd {
-    data: BinTree<BinTreeMapEntry<Key,Value>>
+    data: BinTree<BinTreeMapEntry<Key,Value>>,
+    len: usize,
 }
 
 /// default set is an empty tree
 impl<Key : PartialOrd, Value> Default for BinTreeMap<Key,Value> {
     fn default() -> Self {
         Self {
-            data: BinTree::default()
+            data: BinTree::default(),
+            len: 0,
         }
     }
 }
@@ -49,7 +50,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// number of elements in the map
     pub fn len(&self) -> usize {
-        self.data.len()
+        self.len
     }
     /// is the map empty ?
     pub fn is_empty(&self) -> bool {
@@ -57,6 +58,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
+        self.len += 1;
         self.data.push_sorted_unique(BinTreeMapEntry{key,value});
     }
     /// get a value by key from the map
@@ -120,6 +122,7 @@ impl<Key : PartialOrd + Default, Value: Default> BinTreeMap<Key,Value> {
     /// remove by key from the map and return removed value
     pub fn remove(&mut self, key: &Key) -> Option<Value> {
         if let Some(kv) = self.data.remove_sorted_with_key(key, &BinTreeMapEntry::key) {
+            self.len -= 1;
             Some(kv.value)
         } else {
             None
@@ -300,14 +303,23 @@ mod test {
 
         let mut t : BinTreeMap<KeyType, ValueType> = BinTreeMap::new();
 
+        assert_eq!(t.len(),0);
         t.insert(KeyType(-20), ValueType(782));
+        assert_eq!(t.len(),1);
         t.insert(KeyType(3330), ValueType(-1782));
+        assert_eq!(t.len(),2);
         t.insert(KeyType(33), ValueType(14));
+        assert_eq!(t.len(),3);
         t.insert(KeyType(110), ValueType(-1));
+        assert_eq!(t.len(),4);
         t.insert(KeyType(-40), ValueType(234));
+        assert_eq!(t.len(),5);
         t.insert(KeyType(12), ValueType(82));
+        assert_eq!(t.len(),6);
         t.insert(KeyType(130), ValueType(-2));
+        assert_eq!(t.len(),7);
         t.insert(KeyType(-876), ValueType(-182));
+        assert_eq!(t.len(),8);
 
         assert_eq!(t.to_tree_string(),"\
                 (((BinTreeMapEntry { key: KeyType(-876), value: ValueType(-182) }) <= \
@@ -321,6 +333,7 @@ mod test {
             ");
 
         assert_eq!(t.remove(&KeyType(12)).unwrap(),ValueType(82));
+        assert_eq!(t.len(),7);
 
         assert_eq!(t.to_tree_string(),"\
                 (((BinTreeMapEntry { key: KeyType(-876), value: ValueType(-182) }) <= \
