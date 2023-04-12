@@ -1,21 +1,21 @@
-use crate::BinTree;
+use crate::{BinTree, Result, BinTreeError};
 
 impl<Item: PartialEq> BinTree<Item> {
     /// swap 2 items in the tree (lookup by value)
-    pub fn swap(&mut self, value1 : &Item, value2 : &Item) -> bool {
+    pub fn swap(&mut self, value1 : &Item, value2 : &Item) -> Result<()> {
         let opt1 = self.get_mut(value1);
-        if opt1.is_none() { return false }
+        if opt1.is_none() { return Err(BinTreeError::SwapNotFound1) }
         let ptr1 = opt1.unwrap() as * mut Item;
         let opt2 = self.get_mut(value2);
-        if opt2.is_none() { return false }
+        if opt2.is_none() { return Err(BinTreeError::SwapNotFound2) }
         let ptr2 = opt2.unwrap() as * mut Item;
         if ptr1 != ptr2 {
             unsafe {
                 std::ptr::swap(ptr1,ptr2);
             }
-            true
+            Ok(())
         } else {
-            false
+            Err(BinTreeError::SwapSame)
         }
     }
 }
@@ -23,7 +23,7 @@ impl<Item: PartialEq> BinTree<Item> {
 /// some tests
 #[cfg(test)]
 mod test {
-    use crate::{BinTree, tree, leaf};
+    use crate::{BinTree, tree, leaf, BinTreeError};
 
     fn test_tree() -> BinTree<i32> {
         tree(1,
@@ -51,12 +51,12 @@ mod test {
         assert_eq!(value2,4);
         assert_eq!(t.to_string(),"(((3) <= 2) <= 1 => (5 => ((6) <= 0)))");
 
-        assert_eq!(t.swap(&3, &1),true);
-        assert_eq!(t.swap(&5, &6),true);
-        assert_eq!(t.swap(&0, &6),true);
-        assert_eq!(t.swap(&1, &1),false);
-        assert_eq!(t.swap(&1, &10),false);
-        assert_eq!(t.swap(&10, &1),false);
+        assert_eq!(t.swap(&3, &1).is_ok(),true);
+        assert_eq!(t.swap(&5, &6).is_ok(),true);
+        assert_eq!(t.swap(&0, &6).is_ok(),true);
+        assert_eq!(t.swap(&1, &1),Err(BinTreeError::SwapSame));
+        assert_eq!(t.swap(&1, &10),Err(BinTreeError::SwapNotFound2));
+        assert_eq!(t.swap(&10, &1),Err(BinTreeError::SwapNotFound1));
         assert_eq!(t.to_string(),"(((1) <= 2) <= 3 => (0 => ((5) <= 6)))");
         *t.get_mut(&0).unwrap() = 4;
         assert_eq!(t.to_vec(),vec![1,2,3,4,5,6]);

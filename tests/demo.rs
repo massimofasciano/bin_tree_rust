@@ -98,7 +98,7 @@ fn demo() {
     assert_eq!(t.contains_key(&'b'),true);
     assert_eq!(t.contains_key(&'z'),false);
     assert_eq!(t.get(&'a'),Some(&782));
-    assert_eq!(t.swap(&'a', &'c'),true);
+    assert_eq!(t.swap(&'a', &'c'),Ok(()));
     assert_eq!(t.to_string(),"[('a', 500), ('b', 1782), ('c', 782)]");
     *t.get_mut(&'b').unwrap() += 8;
     assert_eq!(t.to_string(),"[('a', 500), ('b', 1790), ('c', 782)]");

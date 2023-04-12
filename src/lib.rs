@@ -1,3 +1,5 @@
+use derive_more::Display;
+
 /// implementation of a simple binary tree (struct and private methods)
 pub mod bin_tree_types;
 pub use crate::bin_tree_types::*;
@@ -52,6 +54,26 @@ macro_rules! let_node_move {
     ($tree:expr => $value:ident , $left:ident, $right:ident) => {
         let crate::BinTreeNode{value:$value,left:$left,right:$right} = *($tree.root).expect("tree should not be empty");
     };
+}
+
+pub type Result<T> = std::result::Result<T, BinTreeError>;
+
+#[derive(Debug,Display,PartialEq)]
+pub enum BinTreeError {
+    SwapSame,
+    SwapNotFound1,
+    SwapNotFound2,
+}
+
+impl std::error::Error for BinTreeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        use BinTreeError::*;
+        match *self {
+            SwapNotFound1 => None,
+            SwapNotFound2 => None,
+            SwapSame => None,
+        }
+    }
 }
 
 /// import this to use the macros in other crates
