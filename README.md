@@ -33,7 +33,7 @@ split a node into the 3 base parts in a more flexible and fine-grained way witho
 knowledge of the internals of the node struct.
 
 ```rust
-use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree, BinTreeMap};
+use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree, BinTreeMap, BinTree};
 
 #[test]
 fn demo() {
@@ -107,7 +107,16 @@ fn demo() {
         assert_eq!(t.remove(&i),Some(i));    
     }
     assert_eq!(t.is_empty(),true);
-    
+
+    // push onto sorted tree via compare function (length of str)
+    let mut t = BinTree::new();
+    let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
+    t.push_sorted_unique_with_compare("hello there", cmp);
+    t.push_sorted_unique_with_compare("hello world!", cmp);
+    t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
+    t.push_sorted_unique_with_compare("hello", cmp);
+    assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
+
     // binary tree ordered set
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
     let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();

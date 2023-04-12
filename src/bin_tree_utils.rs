@@ -114,6 +114,22 @@ impl<Item> BinTree<Item> {
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// use a function to compare
+    pub fn push_sorted_unique_with_compare<F>(&mut self, new_item : Item, compare : &F) where 
+        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>
+    {
+        if self.is_empty() {
+            *self = Self::new_leaf(new_item)
+        } else {
+            let_node_ref_mut!(self => item, left, right);
+            match compare(&new_item, item) {
+                Some(std::cmp::Ordering::Less) => left.push_sorted_unique_with_compare(new_item,compare),
+                Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_with_compare(new_item,compare),
+                _ => *item = new_item,
+            };
+        }
+    }
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare based on keys
     pub fn push_sorted_unique_with_key<F,Key>(&mut self, new_item : Item, key : &F) where 
         Key : PartialOrd,

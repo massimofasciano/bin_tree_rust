@@ -47,8 +47,8 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
-        // self.data.push_sorted_unique_with_key(BinTreeMapEntry{key,value},&|kv|&kv.key);
-        self.data.push_sorted_unique(BinTreeMapEntry{key,value});
+        // self.data.push_sorted_unique(BinTreeMapEntry{key,value});
+        self.data.push_sorted_unique_with_compare(BinTreeMapEntry{key,value},&BinTreeMapEntry::partial_cmp);
     }
     /// get a value by key from the map
     pub fn get(&self, key: &Key) -> Option<&Value> {
