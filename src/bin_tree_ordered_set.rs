@@ -2,16 +2,17 @@ use crate::{BinTree, BinTreeIntoIter, BinTreeIter};
 
 /// a basic ordered set container shows how to encapsulate a type inside another
 #[derive(Debug,Clone)]
-#[repr(transparent)]
 pub struct OrderedSetBinTree<Item> where Item : PartialOrd {
-    data: BinTree<Item>
+    data: BinTree<Item>,
+    len: usize,
 }
 
 /// default set is an empty tree
 impl<Item : PartialOrd> Default for OrderedSetBinTree<Item> {
     fn default() -> Self {
         Self {
-            data: BinTree::default()
+            data: BinTree::default(),
+            len: 0
         }
     }
 }
@@ -23,15 +24,22 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
     }
     /// number of elements in the set
     pub fn len(&self) -> usize {
-        self.data.len()
+        self.len
     }
     /// set insertion (uses push_ordered_unique tree method)
     pub fn insert(&mut self, value : Item) {
-        self.data.push_sorted_unique(value);
+        if self.data.push_sorted_unique(value) {
+            self.len += 1;
+        }
     }
     /// remove from set (uses remove_sorted tree method)
     pub fn remove(&mut self, value : &Item) -> Option<Item> where Item : Default {
-        self.data.remove_sorted(value)
+        if let Some(removed) = self.data.remove_sorted(value) {
+            self.len -= 1;
+            Some(removed)
+        } else {
+            None
+        }
     }
     /// find a value in the set (uses contains_sorted tree method)
     pub fn contains(&self, value : &Item) -> bool {
@@ -132,19 +140,25 @@ mod test {
         let mut s = OrderedSetBinTree::new();
         TEST_STR.chars().for_each(|c| s.insert(c));
         assert_eq!(s.to_tree_string(),str1);
+        assert_eq!(s.len(), 14);
         let s2 = TEST_STR.chars().collect::<OrderedSetBinTree<_>>();
         assert_eq!(s2.to_tree_string(),str1);
+        assert_eq!(s2.len(), 14);
         assert_eq!(s,s2);
         let s3 = OrderedSetBinTree::from(TEST_STR.chars().collect::<Vec<_>>());
         assert_eq!(s3.to_tree_string(),str1);
+        assert_eq!(s3.len(), 14);
         assert_eq!(s3,s2);
         let s4 = OrderedSetBinTree::from(TEST_STR.chars().collect::<BinTree<_>>());
         assert_eq!(s4.to_string(),"[' ', '!', ',', 'H', 'J', 'a', 'e', 'i', 'l', 'm', 'n', 'o', 's', 'y']");
+        assert_eq!(s4.len(), 14);
         assert_eq!(s3,s4);
         TEST_STR.chars().for_each(|c| { s.remove(&c); } );
         assert_eq!(s.to_tree_string(),"()");
+        assert_eq!(s.len(), 0);
         s.extend(TEST_STR.chars());
         assert_eq!(s.to_tree_string(),str1);
+        assert_eq!(s.len(), 14);
         let str2 = s.iter().collect::<String>();
         assert_eq!(str2," !,HJaeilmnosy");
         assert_eq!(s.len(),14);

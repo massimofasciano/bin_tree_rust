@@ -82,8 +82,8 @@ fn demo() {
     t.push_sorted_unique_with_compare("hello there!", cmp);
     t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
     // "hello world!" replaces "hello there!" because same length...
-    t.push_sorted_unique_with_compare("hello world!", cmp); 
-    t.push_sorted_unique_with_compare("hello", cmp);
+    assert_eq!(t.push_sorted_unique_with_compare("hello world!", cmp),Some("hello there!")); 
+    assert_eq!(t.push_sorted_unique_with_compare("hello", cmp),None);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
     for s in &t {
         assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));

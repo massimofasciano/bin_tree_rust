@@ -58,8 +58,9 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
-        self.len += 1;
-        self.data.push_sorted_unique(BinTreeMapEntry{key,value});
+        if self.data.push_sorted_unique(BinTreeMapEntry{key,value}) {
+            self.len += 1;
+        }
     }
     /// get a value by key from the map
     pub fn get(&self, key: &Key) -> Option<&Value> {
@@ -308,7 +309,9 @@ mod test {
         assert_eq!(t.len(),1);
         t.insert(KeyType(3330), ValueType(-1782));
         assert_eq!(t.len(),2);
-        t.insert(KeyType(33), ValueType(14));
+        t.insert(KeyType(33), ValueType(-14));
+        assert_eq!(t.len(),3);
+        t.insert(KeyType(33), ValueType(14)); // overwrite entry for key 33
         assert_eq!(t.len(),3);
         t.insert(KeyType(110), ValueType(-1));
         assert_eq!(t.len(),4);

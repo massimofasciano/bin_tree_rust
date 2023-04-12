@@ -99,60 +99,71 @@ impl<Item> BinTree<Item> {
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
-    pub fn push_sorted_unique(&mut self, new_item : Item) where Item : PartialOrd {
+    /// returns bool indicating if a new item was added
+    pub fn push_sorted_unique(&mut self, new_item : Item) -> bool where Item : PartialOrd {
         if self.is_empty() {
-            *self = Self::new_leaf(new_item)
+            *self = Self::new_leaf(new_item);
+            true
         } else {
             let_node_ref_mut!(self => item, left, right);
             if new_item < *item {
-                left.push_sorted_unique(new_item);
+                left.push_sorted_unique(new_item)
             } else if new_item > *item {
-                right.push_sorted_unique(new_item);
+                right.push_sorted_unique(new_item)
             } else {
                 *item = new_item;
+                false
             }
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare
-    pub fn push_sorted_unique_with_compare<F>(&mut self, new_item : Item, compare : &F) where 
+    /// returns the replaced item when there is a duplicate (based on compare function)
+    pub fn push_sorted_unique_with_compare<F>(&mut self, new_item : Item, compare : &F) -> Option<Item> where 
         F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>
     {
         if self.is_empty() {
-            *self = Self::new_leaf(new_item)
+            *self = Self::new_leaf(new_item);
+            None
         } else {
             let_node_ref_mut!(self => item, left, right);
             match compare(&new_item, item) {
                 Some(std::cmp::Ordering::Less) => left.push_sorted_unique_with_compare(new_item,compare),
                 Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_with_compare(new_item,compare),
-                _ => *item = new_item,
-            };
+                _ => Some(std::mem::replace(item, new_item)),
+            }
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare based on keys
-    pub fn push_sorted_unique_with_key<F,Key>(&mut self, new_item : Item, key : &F) where 
+    /// return the old item when overwriting
+    pub fn push_sorted_unique_with_key<F,Key>(&mut self, new_item : Item, key : &F) -> Option<Item> where 
         Key : PartialOrd,
         F : Fn(&Item) -> &Key
     {
         if self.is_empty() {
-            *self = Self::new_leaf(new_item)
+            *self = Self::new_leaf(new_item);
+            None
         } else {
             let_node_ref_mut!(self => item, left, right);
             if key(&new_item) < key(item) {
-                left.push_sorted_unique_with_key(new_item,key);
+                left.push_sorted_unique_with_key(new_item,key)
             } else if key(&new_item) > key(item) {
-                right.push_sorted_unique_with_key(new_item,key);
+                right.push_sorted_unique_with_key(new_item,key)
             } else {
-                *item = new_item;
+                Some(std::mem::replace(item, new_item))
             }
         }
     }
     /// extend a sorted or empty tree with no duplicates and keeps both properties
-    pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
+    pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) -> usize where Item : PartialOrd {
+        let mut count = 0;
         for elem in iter {
-            self.push_sorted_unique(elem);
+            if self.push_sorted_unique(elem) {
+                count += 1;
+            }
         }
+        count
     }
     /// push to the right branch of a tree (linear tree)
     pub fn push_right(&mut self, new_item : Item) {
@@ -607,14 +618,14 @@ mod test {
     #[test]
     fn push_sorted_unique_test() {
         let mut t = BinTree::new();
-        t.push_sorted_unique(4);
-        t.push_sorted_unique(2);
-        t.push_sorted_unique(8);
-        t.push_sorted_unique(1);
-        t.push_sorted_unique(2);
+        assert_eq!(t.push_sorted_unique(4),true);
+        assert_eq!(t.push_sorted_unique(2),true);
+        assert_eq!(t.push_sorted_unique(8),true);
+        assert_eq!(t.push_sorted_unique(1),true);
+        assert_eq!(t.push_sorted_unique(2),false);
         assert_eq!(t.to_string(),"(((1) <= 2) <= 4 => (8))");
         assert_eq!(t.to_vec(),vec![1,2,4,8]);
-        t.extend_sorted_unique(vec![18,6,3,8,5,11]);
+        assert_eq!(t.extend_sorted_unique(vec![18,6,3,8,5,11]),5);
         assert_eq!(t.to_string(),"(((1) <= 2 => (3)) <= 4 => (((5) <= 6) <= 8 => ((11) <= 18)))");
         assert_eq!(t.to_vec(),vec![1,2,3,4,5,6,8,11,18]);
     }
@@ -754,8 +765,8 @@ mod test {
         t.push_sorted_unique_with_compare("hello there!", cmp);
         t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
         // "hello world!" replaces "hello there!" because same length...
-        t.push_sorted_unique_with_compare("hello world!", cmp); 
-        t.push_sorted_unique_with_compare("hello", cmp);
+        assert_eq!(t.push_sorted_unique_with_compare("hello world!", cmp),Some("hello there!")); 
+        assert_eq!(t.push_sorted_unique_with_compare("hello", cmp),None);
         assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
         for s in &t {
             assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
