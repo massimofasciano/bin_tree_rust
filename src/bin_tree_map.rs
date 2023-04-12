@@ -22,16 +22,26 @@ impl<Key : PartialOrd, Value> Default for BinTreeMap<Key,Value> {
         }
     }
 }
+
+impl<Key : PartialOrd, Value> BinTreeMapEntry<Key,Value> {
+    /// get the key from a BinTreeMapEntry
+    pub fn key(&self) -> &Key {
+        &self.key
+    }
+}
 impl<Key : PartialOrd, Value> PartialEq for BinTreeMapEntry<Key,Value> {
+    /// equality for BinTreeMapEntry (by key)
     fn eq(&self, other: &Self) -> bool {
         self.key == other.key
     }
 }
 impl<Key : PartialOrd, Value> PartialOrd for BinTreeMapEntry<Key,Value> {
+    /// partial order for BinTreeMapEntry (by key)
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.key.partial_cmp(&other.key)
     }
 }
+
 impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     /// empty tree
     pub fn new() -> Self {
@@ -47,8 +57,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
-        // self.data.push_sorted_unique(BinTreeMapEntry{key,value});
-        self.data.push_sorted_unique_with_compare(BinTreeMapEntry{key,value},&BinTreeMapEntry::partial_cmp);
+        self.data.push_sorted_unique(BinTreeMapEntry{key,value});
     }
     /// get a value by key from the map
     pub fn get(&self, key: &Key) -> Option<&Value> {
@@ -60,8 +69,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// get (key,value) by key from the map
     pub fn get_key_value(&self, key: &Key) -> Option<(&Key, &Value)> {
-        // if let Some(kv) = self.data.get_sorted_with_key(key, &|kv|&kv.key) {
-        if let Some(kv) = self.data.get_sorted_with_key(key, &|kv|&kv.key) {
+        if let Some(kv) = self.data.get_sorted_with_key(key, &BinTreeMapEntry::key) {
                 Some((&kv.key,&kv.value))
         } else {
             None
@@ -69,7 +77,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// get mut value by key from the map
     pub fn get_mut(&mut self, key: &Key) -> Option<&mut Value> {
-        if let Some(kv) = self.data.get_sorted_mut_with_key(key, &|kv|&kv.key) {
+        if let Some(kv) = self.data.get_sorted_mut_with_key(key, &&BinTreeMapEntry::key) {
             Some(&mut kv.value)
         } else {
             None
@@ -111,7 +119,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
 impl<Key : PartialOrd + Default, Value: Default> BinTreeMap<Key,Value> {
     /// remove by key from the map and return removed value
     pub fn remove(&mut self, key: &Key) -> Option<Value> {
-        if let Some(kv) = self.data.remove_sorted_with_key(key, &|kv|&kv.key) {
+        if let Some(kv) = self.data.remove_sorted_with_key(key, &BinTreeMapEntry::key) {
             Some(kv.value)
         } else {
             None
