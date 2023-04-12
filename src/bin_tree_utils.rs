@@ -186,7 +186,7 @@ impl<Item> BinTree<Item> {
     }
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
-    fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+    fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> {
         if self.is_leaf() {
             Some(self)
         } else if self.is_branch() {
@@ -197,26 +197,6 @@ impl<Item> BinTree<Item> {
                 // min from left path
                 self.left_mut().unwrap().min_tree_mut()
 
-            }
-        } else {
-            None
-        }
-    }
-    /// returns the mutable tree node containing the minimum value item
-    /// assumes that the tree is sorted (using key)
-    fn min_tree_mut_with_key<F,Key>(&mut self, key: &F) -> Option<&mut BinTree<Item>> where 
-        Key : PartialOrd,
-        F : Fn(&Item) -> &Key,
-    {
-        if self.is_leaf() {
-            Some(self)
-        } else if self.is_branch() {
-            if self.left().unwrap().is_empty() {
-                // no left path
-                Some(self)
-            } else {
-                // min from left path
-                self.left_mut().unwrap().min_tree_mut_with_key(key)
             }
         } else {
             None
@@ -483,7 +463,7 @@ impl<Item: Default> BinTree<Item> {
             } else if left.is_empty() {
                 Some(take_value_replace_tree!(self,value,right))
             } else {
-                let min_right = right.min_tree_mut_with_key(key).expect("min right should always return some tree");
+                let min_right = right.min_tree_mut().expect("min right should always return some tree");
                 let min_right_value = min_right.value_mut().expect("min right should always return some item");
                 std::mem::swap(value,min_right_value);
                 min_right.pop_sorted_with_key(key)
