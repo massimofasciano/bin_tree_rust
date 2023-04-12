@@ -7,4 +7,4 @@ edition = "2021"
 rand = { version = "0.8.5", optional = true }
 
 [features]
-default = [ "rand" ]
+default = []
