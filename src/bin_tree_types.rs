@@ -16,7 +16,7 @@ pub struct BinTreeNode<Item> {
 impl<Item> BinTree<Item> {
     /// creates a branch
     pub fn new_node(value : Item, left: BinTree<Item>, right: BinTree<Item>) -> Self {
-        let height = left.height() + right.height() + 1;
+        let height = std::cmp::max(left.height(),right.height()) + 1;
         Self { 
             root : Some(Box::new(BinTreeNode{value, left, right})), 
             height,
@@ -252,4 +252,29 @@ mod test {
         assert_eq!(tree.to_string(),"(10 => (70))");
     }
 
+    #[test]
+    fn test_init_height() {
+        let t = test_tree();
+
+        assert_eq!(format!("{:?}",t),"\
+            BinTree { root: Some(BinTreeNode { value: 1, \
+                left: BinTree { root: Some(BinTreeNode { value: 2, \
+                    left: BinTree { root: Some(BinTreeNode { value: 3, \
+                        left: BinTree { root: None, height: 0 }, \
+                        right: BinTree { root: None, height: 0 } }), \
+                        height: 1 }, \
+                    right: BinTree { root: None, height: 0 } }), \
+                    height: 2 }, \
+                right: BinTree { root: Some(BinTreeNode { value: 4, \
+                    left: BinTree { root: None, height: 0 }, \
+                    right: BinTree { root: Some(BinTreeNode { value: 5, \
+                        left: BinTree { root: Some(BinTreeNode { value: 6, \
+                            left: BinTree { root: None, height: 0 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 1 }, \
+                        right: BinTree { root: None, height: 0 } }), \
+                        height: 2 } }), \
+                    height: 3 } }), \
+                height: 4 }");
+    }
 }
