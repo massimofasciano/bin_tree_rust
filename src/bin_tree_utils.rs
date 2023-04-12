@@ -253,6 +253,22 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+    /// try to remove with compare function from a sorted tree and preserve order
+    pub fn remove_sorted_with_compare<F>(&mut self, target_value : &Item, compare : &F) -> Option<Item> where
+        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
+        Item : Default,
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            match compare(target_value, value) {
+                Some(std::cmp::Ordering::Less) => left.remove_sorted_with_compare(target_value,compare),
+                Some(std::cmp::Ordering::Greater) => right.remove_sorted_with_compare(target_value,compare),
+                _ => self.pop_sorted_with_compare(compare),
+            }
+        }
+    }
     /// find a value in a sorted tree
     pub fn contains_sorted(&self, target_value : &Item) -> bool where Item : PartialOrd {
         if self.is_empty() {
@@ -312,6 +328,36 @@ impl<Item> BinTree<Item> {
                 right.get_sorted_mut_with_key(target_value,key)
             } else {
                 Some(value)
+            }
+        }
+    }
+    /// find a value in a sorted tree with a compare function and return ref
+    pub fn get_sorted_with_compare<F>(&self, target_value : &Item, compare : &F) -> Option<&Item> where
+        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref!(self => value, left, right);
+            match compare(target_value, value) {
+                Some(std::cmp::Ordering::Less) => left.get_sorted_with_compare(target_value,compare),
+                Some(std::cmp::Ordering::Greater) => right.get_sorted_with_compare(target_value,compare),
+                _ => Some(value),
+            }
+        }
+    }
+    /// find a value in a sorted tree with a compare function and return mut ref
+    pub fn get_sorted_mut_with_compare<F>(&mut self, target_value : &Item, compare : &F) -> Option<&mut Item> where
+        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            match compare(target_value, value) {
+                Some(std::cmp::Ordering::Less) => left.get_sorted_mut_with_compare(target_value,compare),
+                Some(std::cmp::Ordering::Greater) => right.get_sorted_mut_with_compare(target_value,compare),
+                _ => Some(value),
             }
         }
     }
@@ -467,6 +513,28 @@ impl<Item: Default> BinTree<Item> {
                 let min_right_value = min_right.value_mut().expect("min right should always return some item");
                 std::mem::swap(value,min_right_value);
                 min_right.pop_sorted_with_key(key)
+            }
+        }
+    }
+    /// pop the top value from a sorted tree and preserves order (using compare function)
+    pub fn pop_sorted_with_compare<F>(&mut self, compare: &F) -> Option<Item> where
+        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
+    {
+        if self.is_empty() {
+            None
+        } else {
+            let_node_ref_mut!(self => value, left, right);
+            if left.is_empty() && right.is_empty() {
+                Some(take_value_replace_tree!(self,value,&mut Self::new()))
+            } else if right.is_empty() {
+                Some(take_value_replace_tree!(self,value,left))
+            } else if left.is_empty() {
+                Some(take_value_replace_tree!(self,value,right))
+            } else {
+                let min_right = right.min_tree_mut().expect("min right should always return some tree");
+                let min_right_value = min_right.value_mut().expect("min right should always return some item");
+                std::mem::swap(value,min_right_value);
+                min_right.pop_sorted_with_compare(compare)
             }
         }
     }
@@ -676,5 +744,29 @@ mod test {
         for i in 1..10 {
             assert_eq!(t.pop_left().unwrap(),i);
         }
+    }
+
+    #[test]
+    fn ordered_compare_test() {
+        let mut t = BinTree::new();
+        let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
+        t.push_sorted_unique_with_compare("hello there", cmp);
+        t.push_sorted_unique_with_compare("hello there!", cmp);
+        t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
+        // "hello world!" replaces "hello there!" because same length...
+        t.push_sorted_unique_with_compare("hello world!", cmp); 
+        t.push_sorted_unique_with_compare("hello", cmp);
+        assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
+        for s in &t {
+            assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
+        }
+        assert_eq!(t.remove_sorted_with_compare(&"hello world!", cmp),Some("hello world!"));
+        assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
+        let s = t.get_sorted_mut_with_compare(&"hello", cmp).unwrap();
+        assert_eq!(s,&"hello");
+        *s = "do you like the borrow checker?";
+        // The tree is not sorted anymore because we used a mut reference to change a value
+        // without using a normal insertion that preserves order.
+        assert_eq!(t.to_vec(),vec!["do you like the borrow checker?", "hello there", "hello my name is Rusty"]);
     }
 }

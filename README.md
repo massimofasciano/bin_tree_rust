@@ -108,14 +108,31 @@ fn demo() {
     }
     assert_eq!(t.is_empty(),true);
 
-    // push onto sorted tree via compare function (length of str)
+    // Sorted tree using custom compare function (length of str)
+    // The same can be done with normal sorted tree methods and a custom ordered wrapper
+    // type for the values (like BinTreeMap does with insertion of BinTreeMapEntry).
     let mut t = BinTree::new();
     let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
     t.push_sorted_unique_with_compare("hello there", cmp);
-    t.push_sorted_unique_with_compare("hello world!", cmp);
+    t.push_sorted_unique_with_compare("hello there!", cmp);
     t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
+    // "hello world!" replaces "hello there!" because same length...
+    t.push_sorted_unique_with_compare("hello world!", cmp); 
     t.push_sorted_unique_with_compare("hello", cmp);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
+    for s in &t {
+        assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
+    }
+    assert_eq!(t.remove_sorted_with_compare(&"hello world!", cmp),Some("hello world!"));
+    assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
+    let s = t.get_sorted_mut_with_compare(&"hello", cmp).unwrap();
+    assert_eq!(s,&"hello");
+    *s = "do you like the borrow checker?";
+    // The tree is not sorted anymore because we used a mut reference to change a value
+    // without using a normal insertion that preserves order.
+    // A wrapper type (like BinTreeMap) can use mut references safely by only changing the data in a
+    // way that does not change order (like changing the val in a key/val pair).
+    assert_eq!(t.to_vec(),vec!["do you like the borrow checker?", "hello there", "hello my name is Rusty"]);
 
     // binary tree ordered set
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
