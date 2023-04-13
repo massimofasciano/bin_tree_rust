@@ -75,29 +75,6 @@ impl<Item> BinTree<Item> {
     pub fn len(&self) -> usize {
         self.iter().count()
     }
-    /// default push method (uses push_sorted)
-    pub fn push(&mut self, new_item : Item) where Item : PartialOrd {
-        self.push_sorted(new_item);
-    }
-    /// push onto a sorted or empty tree and keeps order property
-    pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
-        if self.is_empty() {
-            *self = Self::new_leaf(new_item)
-        } else {
-            let_node_ref_mut!(self => item, left, right);
-            if new_item < *item {
-                left.push_sorted(new_item);
-            } else {
-                right.push_sorted(new_item);
-            }
-        }
-    }
-    /// extend a sorted or empty tree and keeps order property
-    pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
-        for elem in iter {
-            self.push_sorted(elem);
-        }
-    }
 
     /// rebalance a balanced binary tree
     pub fn rebalance(&mut self) {
@@ -113,6 +90,7 @@ impl<Item> BinTree<Item> {
             }
         } 
     }
+    /// utility function used in rebalancing of a balanced binary tree
     pub fn rotate_right(&mut self) {
         if !self.is_empty() {
             let mut l = std::mem::take(self.left_mut().unwrap());
@@ -125,6 +103,7 @@ impl<Item> BinTree<Item> {
             self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
         }
     }
+    /// utility function used in rebalancing of a balanced binary tree
     pub fn rotate_left(&mut self) {
         if !self.is_empty() {
             let mut r = std::mem::take(self.right_mut().unwrap());
@@ -137,6 +116,7 @@ impl<Item> BinTree<Item> {
             self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
         }
     }
+    /// utility function used in rebalancing of a balanced binary tree
     pub fn rotate_left_right(&mut self) {
         if !self.is_empty() {
             self.left_mut().unwrap().rotate_left();
@@ -144,6 +124,7 @@ impl<Item> BinTree<Item> {
             self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
         }
     }
+    /// utility function used in rebalancing of a balanced binary tree
     pub fn rotate_right_left(&mut self) {
         if !self.is_empty() {
             self.right_mut().unwrap().rotate_right();
@@ -152,9 +133,41 @@ impl<Item> BinTree<Item> {
         }
     }
 
+    /// default push method (uses push_sorted)
+    pub fn push(&mut self, new_item : Item) where Item : PartialOrd {
+        self.push_sorted(new_item);
+    }
+    /// push onto a sorted or empty tree and keeps order property (rebalance)
+    pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
+        self.push_sorted_maybe_rebalance(new_item, true);
+    }
+    /// push onto a sorted or empty tree and keeps order property (optional rebalancing)
+    pub fn push_sorted_maybe_rebalance(&mut self, new_item : Item, rebalance : bool) where Item : PartialOrd {
+        if self.is_empty() {
+            *self = Self::new_leaf(new_item)
+        } else {
+            let_node_ref_mut!(self => item, left, right);
+            if new_item < *item {
+                left.push_sorted_maybe_rebalance(new_item,rebalance);
+            } else {
+                right.push_sorted_maybe_rebalance(new_item,rebalance);
+            }
+            self.height = std::cmp::max(left.height, right.height) + 1;
+            if rebalance { self.rebalance(); }
+        }
+    }
+
+    /// extend a sorted or empty tree and keeps order property (rebalance)
+    pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
+        for elem in iter {
+            self.push_sorted(elem);
+        }
+    }
+
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare keys and a function to get key from item
     /// returns the replaced item when there is a duplicate (based on compare function)
+    /// optional rebalancing
     pub fn push_sorted_unique_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, new_item : Item, 
         to_key: &FtoKey, cmp : &Fcmp, rebalance : bool) -> Option<Item> where 
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
@@ -175,12 +188,12 @@ impl<Item> BinTree<Item> {
             result
         }
     }
-    /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     /// returns bool indicating if a new item was added
     pub fn push_sorted_unique(&mut self, new_item : Item) -> bool where Item : PartialOrd {
         self.push_sorted_unique_to_key_cmp(new_item,&|i|i,&Item::partial_cmp,true).is_none()
     }
-    /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     /// use a function to compare
     /// returns the replaced item when there is a duplicate (based on compare function)
     pub fn push_sorted_unique_cmp<Fcmp>(&mut self, new_item : Item, cmp : &Fcmp) -> Option<Item> where 
@@ -188,7 +201,7 @@ impl<Item> BinTree<Item> {
     {
         self.push_sorted_unique_to_key_cmp(new_item,&|i|i,cmp,true)
     }
-    /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     /// use a function to compare based on keys
     /// return the old item when overwriting
     pub fn push_sorted_unique_to_key<FtoKey,Key>(&mut self, new_item : Item, to_key : &FtoKey) -> Option<Item> where 
@@ -198,7 +211,7 @@ impl<Item> BinTree<Item> {
         self.push_sorted_unique_to_key_cmp(new_item,to_key,&Key::partial_cmp,true)
     }
 
-    /// extend a sorted or empty tree with no duplicates and keeps both properties
+    /// extend a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) -> usize where Item : PartialOrd {
         let mut count = 0;
         for elem in iter {
@@ -655,7 +668,8 @@ mod test {
         assert_eq!(t.to_string(),"(((1) <= 2 => (2)) <= 4 => (8))");
         assert_eq!(t.to_vec(),vec![1,2,2,4,8]);
         t.extend_sorted(vec![18,6,3,8,5,11]);
-        assert_eq!(t.to_string(),"(((1) <= 2 => (2 => (3))) <= 4 => (((5) <= 6) <= 8 => ((8 => (11)) <= 18)))");
+        assert_eq!(t.to_string(),"(((1) <= 2 => (2 => (3))) <= 4 => (((5) <= 6) <= 8 => ((8) <= 11 => (18))))");
+        assert_eq!(t.height(),4);
         assert_eq!(t.to_vec(),vec![1,2,2,3,4,5,6,8,8,11,18]);
     }
 
@@ -759,7 +773,8 @@ mod test {
         let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
         let t = v.into_iter().collect::<BinTree<_>>();
         assert_eq!(t.to_string(),
-            "((((1 => (2 => (2))) <= 3 => ((3 => (3 => (3))) <= 5 => (5))) <= 6 => (((6) <= 7) <= 8 => ((8 => ((9) <= 10)) <= 11))) <= 18)");
+            "((((1) <= 2 => (2)) <= 3 => (((3) <= 3 => (3)) <= 5 => (5))) <= 6 => (((6) <= 7 => (8)) <= 8 => (((9) <= 10) <= 11 => (18))))");
+        assert_eq!(t.height(),5);
     }
 
     #[test]
