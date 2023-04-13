@@ -56,7 +56,7 @@ fn basic_access_test() {
     let subtree = tree.get_tree_mut(&40).unwrap();
     *subtree = BinTree::new_leaf(50);
     assert_eq!(tree.to_string(),"(10 => (50))");
-    *tree.get_sorted_mut(&50).unwrap() = 60;
+    *tree.get_mut_sorted(&50).unwrap() = 60;
     assert_eq!(tree.to_string(),"(10 => (60))");
     let subtree = tree.get_tree_sorted_mut(&60).unwrap();
     *subtree = BinTree::new_leaf(70);
@@ -336,11 +336,11 @@ fn ordered_compare_test() {
     assert_eq!(insert_cmp!(t,"hello"),None);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
     for s in &t {
-        assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
+        assert_eq!(t.get_sorted_to_key_cmp(s, &|x|x, cmp),Some(s));
     }
     assert_eq!(t.remove_sorted_to_key_cmp(&"hello world!", &|x|x, cmp, true),Some("hello world!"));
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
-    let s = t.get_sorted_mut_with_compare(&"hello", cmp).unwrap();
+    let s = t.get_mut_sorted_to_key_cmp(&"hello", &|x|x, cmp).unwrap();
     assert_eq!(s,&"hello");
     *s = "do you like the borrow checker?";
     // The tree is not sorted anymore because we used a mut reference to change a value

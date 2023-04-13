@@ -57,16 +57,18 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
         }
     }
     /// get (key,value) by key from the map
-    pub fn get_key_value(&self, key: &Key) -> Option<(&Key, &Value)> {
-        if let Some(kv) = self.data.get_sorted_with_key(key, &BinTreeMapEntry::key) {
-                Some((&kv.key,&kv.value))
+    pub fn get_key_value(&self, target_key: &Key) -> Option<(&Key, &Value)> {
+        if let Some(kv) = self.data.get_sorted_to_key_cmp(target_key, 
+                &BinTreeMapEntry::key, &Key::partial_cmp) {
+            Some((&kv.key,&kv.value))
         } else {
             None
         }
     }
     /// get mut value by key from the map
     pub fn get_mut(&mut self, key: &Key) -> Option<&mut Value> {
-        if let Some(kv) = self.data.get_sorted_mut_with_key(key, &&BinTreeMapEntry::key) {
+        if let Some(kv) = self.data.get_mut_sorted_to_key_cmp(key, 
+                &&BinTreeMapEntry::key, &Key::partial_cmp) {
             Some(&mut kv.value)
         } else {
             None
