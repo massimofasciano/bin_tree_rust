@@ -44,7 +44,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     /// insert into the map
     pub fn insert(&mut self, key: Key, value: Value) {
-        if self.data.push_sorted_unique(BinTreeMapEntry{key,value}) {
+        if self.data.insert_unique(BinTreeMapEntry{key,value}) {
             self.len += 1;
         }
     }

@@ -154,16 +154,14 @@ impl<Item> BinTree<Item> {
 }
 
 impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
-    /// extend a tree using the default push method (ordered)
+    /// extend a tree (if it was ordered and balanced, this will preserve both)
     fn extend<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
-        for elem in iter {
-            self.push(elem);
-        }
+        self.extend_sorted(iter);
     }
 }
 
 impl<Item : PartialOrd> FromIterator<Item> for BinTree<Item> {
-    /// create a sorted tree from an iterator
+    /// create a sorted balanced tree from an iterator
     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
         let mut t = Self::new();
         t.extend_sorted(iter);

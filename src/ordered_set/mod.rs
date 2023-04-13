@@ -28,7 +28,7 @@ impl<Item : PartialOrd> BinTreeOrderedSet<Item> {
     }
     /// set insertion (uses push_ordered_unique tree method)
     pub fn insert(&mut self, value : Item) {
-        if self.data.push_sorted_unique(value) {
+        if self.data.insert_unique(value) {
             self.len += 1;
         }
     }

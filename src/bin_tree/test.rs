@@ -163,11 +163,11 @@ fn take_replace_swap_test() {
 #[test]
 fn push_sorted_test() {
     let mut t = BinTree::new();
-    t.push_sorted(4);
-    t.push_sorted(2);
-    t.push_sorted(8);
-    t.push_sorted(1);
-    t.push_sorted(2);
+    t.insert(4);
+    t.insert(2);
+    t.insert(8);
+    t.insert(1);
+    t.insert(2);
     assert_eq!(t.to_string(),"(((1) <= 2 => (2)) <= 4 => (8))");
     assert_eq!(t.to_vec(),vec![1,2,2,4,8]);
     t.extend_sorted(vec![18,6,3,8,5,11]);
@@ -179,11 +179,11 @@ fn push_sorted_test() {
 #[test]
 fn push_sorted_unique_test() {
     let mut t = BinTree::new();
-    assert_eq!(t.push_sorted_unique(4),true);
-    assert_eq!(t.push_sorted_unique(2),true);
-    assert_eq!(t.push_sorted_unique(8),true);
-    assert_eq!(t.push_sorted_unique(1),true);
-    assert_eq!(t.push_sorted_unique(2),false);
+    assert_eq!(t.insert_unique(4),true);
+    assert_eq!(t.insert_unique(2),true);
+    assert_eq!(t.insert_unique(8),true);
+    assert_eq!(t.insert_unique(1),true);
+    assert_eq!(t.insert_unique(2),false);
     assert_eq!(t.to_string(),"(((1) <= 2) <= 4 => (8))");
     assert_eq!(t.to_vec(),vec![1,2,4,8]);
     assert_eq!(t.extend_sorted_unique(vec![18,6,3,8,5,11]),5);
@@ -323,12 +323,17 @@ fn push_pop_test() {
 fn ordered_compare_test() {
     let mut t = BinTree::new();
     let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
-    t.push_sorted_unique_cmp("hello there", cmp);
-    t.push_sorted_unique_cmp("hello there!", cmp);
-    t.push_sorted_unique_cmp("hello my name is Rusty", cmp);
+    macro_rules! insert_cmp {
+        ($t:ident, $s:expr) => {
+            $t.insert_to_key_cmp($s,&|i|i,cmp,true,true)    
+        };
+    }
+    insert_cmp!(t,"hello there");
+    insert_cmp!(t,"hello there!");
+    insert_cmp!(t,"hello my name is Rusty");
     // "hello world!" replaces "hello there!" because same length...
-    assert_eq!(t.push_sorted_unique_cmp("hello world!", cmp),Some("hello there!")); 
-    assert_eq!(t.push_sorted_unique_cmp("hello", cmp),None);
+    assert_eq!(insert_cmp!(t,"hello world!"),Some("hello there!")); 
+    assert_eq!(insert_cmp!(t,"hello"),None);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
     for s in &t {
         assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
@@ -348,7 +353,7 @@ fn test_height() {
     let mut t = BinTree::new();
     assert_eq!(t.height(),0);
 
-    t.push_sorted_unique(1);
+    t.insert_unique(1);
     assert_eq!(t.height(),1);
 
     t.extend_sorted_unique(vec![5,3,7,38,9,20,4,5,6,17,24,3,1,12,3,24,5,6,7,2,4,6,16]);
@@ -408,7 +413,7 @@ fn test_rebalance_off_on() {
 
     t = BinTree::new();
     for c in s.chars() {
-        t.push_sorted_unique_to_key_cmp(c,&|c|c,&char::partial_cmp,false);
+        t.insert_to_key_cmp(c,&|c|c,&char::partial_cmp,false, true);
     }
     assert_eq!(t.height(),9);
     assert_eq!(t.to_string(),
@@ -422,7 +427,7 @@ fn test_rebalance_off_on() {
 
     t = BinTree::new();
     for c in s.chars() {
-        t.push_sorted_unique_to_key_cmp(c,&|c|c,&char::partial_cmp,true);
+        t.insert_to_key_cmp(c,&|c|c,&char::partial_cmp,true, true);
     }
     assert_eq!(t.height(),5);
     assert_eq!(t.to_string(),
