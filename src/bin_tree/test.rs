@@ -451,17 +451,17 @@ fn pop_sorted_height_test() {
     assert_eq!(t.height(),5);
 
     assert_eq!(t.recalculate_heights(),false);
-    assert_eq!(t.pop_sorted(),Some('h'));
+    assert_eq!(t.pop_sorted(true),Some('h'));
     assert_eq!(t.recalculate_heights(),false);
-    assert_eq!(t.pop_sorted(),Some('i'));
+    assert_eq!(t.pop_sorted(true),Some('i'));
     assert_eq!(t.recalculate_heights(),false);
-    assert_eq!(t.pop_sorted(),Some('l'));
+    assert_eq!(t.pop_sorted(true),Some('l'));
     assert_eq!(t.recalculate_heights(),false);
-    assert_eq!(t.pop_sorted(),Some('m'));
+    assert_eq!(t.pop_sorted(true),Some('m'));
     assert_eq!(t.recalculate_heights(),false);
 
     for _ in 0..t.len() {
-        assert_eq!(t.pop_sorted().is_some(),true);
+        assert_eq!(t.pop_sorted(true).is_some(),true);
         assert_eq!(t.recalculate_heights(),false);
     }
 
@@ -505,11 +505,13 @@ fn random_balance_test() {
 
     for _ in 0..n {
         t.insert_unique(rng.gen());
+        assert_eq!(t.recalculate_heights(),false);
         assert_eq!(t.is_balanced(),true);
     }
     // assert_eq!(t.height(),16);
     for _ in 0..n {
         t.remove_sorted(&rng.gen());
+        assert_eq!(t.recalculate_heights(),false);
         assert_eq!(t.is_balanced(),true);
     }
 }

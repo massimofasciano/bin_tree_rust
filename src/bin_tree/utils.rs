@@ -79,14 +79,18 @@ impl<Item> BinTree<Item> {
     /// rebalance a balanced binary tree
     pub fn rebalance(&mut self) {
         if !self.is_empty() {
-            if self.balance() < -1 && self.left().unwrap().balance() == -1 {
-                self.rotate_right();
-            } else if self.balance() > 1 && self.right().unwrap().balance() == 1 {
-                self.rotate_left();
-            } else if self.balance() < -1 && self.left().unwrap().balance() == 1 {
-                self.rotate_left_right();
-            } else if self.balance() > 1 && self.right().unwrap().balance() == -1 {
-                self.rotate_right_left();
+            if self.balance() > 1 {
+                if self.left().unwrap().balance() >= 0 {
+                    self.rotate_right();
+                } else if self.left().unwrap().balance() == -1 {
+                    self.rotate_left_right();
+                }
+            } else if self.balance() < -1 {
+                if self.right().unwrap().balance() <= 0 {
+                    self.rotate_left();
+                } else if self.right().unwrap().balance() == 1 {
+                    self.rotate_right_left();
+                }
             }
         } 
     }

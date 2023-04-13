@@ -43,10 +43,12 @@ impl<Item> BinTree<Item> {
             let result = match cmp(target_key, to_key(value)) {
                 Some(std::cmp::Ordering::Less) => left.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
                 Some(std::cmp::Ordering::Greater) => right.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
-                _ => self.pop_sorted(),
+                _ => self.pop_sorted(rebalance),
             };
-            self.update_height();
-            if rebalance { self.rebalance(); }
+            if result.is_some() {
+                self.update_height();
+                if rebalance { self.rebalance(); }
+            }
             result
         }
     }
@@ -93,7 +95,8 @@ impl<Item: Default> BinTree<Item> {
 
     /// pop the top value from a sorted tree and preserves order
     /// heights are adjusted
-    pub fn pop_sorted(&mut self) -> Option<Item> {
+    /// rebalancing is optional
+    pub fn pop_sorted(&mut self, rebalance : bool) -> Option<Item> {
         if self.is_empty() {
             None
         } else {
@@ -108,9 +111,9 @@ impl<Item: Default> BinTree<Item> {
                 let min_right = right.min_tree_mut().expect("min right should always return some tree");
                 let min_right_value = min_right.value_mut().expect("min right should always return some item");
                 std::mem::swap(value,min_right_value);
-                let result = min_right.pop_sorted();
-                // recalc only on the left path of the right subtree
-                right.recalculate_heights_rec(true,false);
+                let result = min_right.pop_sorted(rebalance);
+                // recalc only on the left path of the right subtree and rebalance on the way up
+                right.recalculate_heights_rec(true,false,rebalance);
                 self.height = std::cmp::max(left.height, right.height) + 1;
                 result
             }

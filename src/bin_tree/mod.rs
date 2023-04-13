@@ -78,8 +78,8 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             0
         } else {
-            self.right().unwrap().height()-
-            self.left().unwrap().height()
+            self.left().unwrap().height()-
+            self.right().unwrap().height()
         }
     }
     /// is the tree balanced ?
@@ -228,12 +228,13 @@ impl<Item> BinTree<Item> {
     /// recalculate the height fields in the tree
     /// return true if any height changed ?
     pub fn recalculate_heights(&mut self) -> bool {
-        self.recalculate_heights_rec(true, true).1
+        self.recalculate_heights_rec(true, true, false).1
     }
     /// recalculate the height fields in the tree
     /// return (height of tree, any height changed ?)
     /// recursion to left and/or right is optional (for special optimized cases)
-    pub fn recalculate_heights_rec(&mut self, rec_left : bool, rec_right : bool) -> (isize, bool) {
+    /// optional rebalancing
+    pub fn recalculate_heights_rec(&mut self, rec_left : bool, rec_right : bool, rebalance : bool) -> (isize, bool) {
         let mut changed = false;
         if self.is_empty() {
             self.height = 0;
@@ -244,10 +245,10 @@ impl<Item> BinTree<Item> {
             let mut changed_left = false;
             let mut changed_right = false;
             if rec_left {
-                (height_left, changed_left) = left.recalculate_heights_rec(rec_left,rec_right);
+                (height_left, changed_left) = left.recalculate_heights_rec(rec_left,rec_right,rebalance);
             }
             if rec_right {
-                (height_right, changed_right) = right.recalculate_heights_rec(rec_left,rec_right);
+                (height_right, changed_right) = right.recalculate_heights_rec(rec_left,rec_right,rebalance);
             }
             let height_rec = std::cmp::max(height_left,height_right) + 1;
             if changed_left || changed_right {
@@ -257,6 +258,7 @@ impl<Item> BinTree<Item> {
                 changed = true;
                 self.height = height_rec;
             }
+            if rebalance { self.rebalance() }
         }
         (self.height, changed)
     }

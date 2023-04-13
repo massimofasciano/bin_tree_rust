@@ -13,7 +13,7 @@ fn test_macros() {
     let_node_ref_mut!(bt => value, left, right);
     *value += 1;
     *left = tree(2,leaf(1),leaf(3));
-    let p = right.pop_sorted();
+    let p = right.pop_sorted(true);
     assert_eq!(value,&5);
     assert_eq!(p,Some(7));
     assert_eq!(left.to_string(),"((1) <= 2 => (3))");
