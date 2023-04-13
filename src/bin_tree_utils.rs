@@ -325,7 +325,7 @@ impl<Item> BinTree<Item> {
             } else if target_value > key(value) {
                 right.remove_sorted_with_key(target_value,key)
             } else {
-                self.pop_sorted_with_key(key)
+                self.pop_sorted()
             }
         }
     }
@@ -341,7 +341,7 @@ impl<Item> BinTree<Item> {
             match compare(target_value, value) {
                 Some(std::cmp::Ordering::Less) => left.remove_sorted_with_compare(target_value,compare),
                 Some(std::cmp::Ordering::Greater) => right.remove_sorted_with_compare(target_value,compare),
-                _ => self.pop_sorted_with_compare(compare),
+                _ => self.pop_sorted(),
             }
         }
     }
@@ -553,7 +553,7 @@ impl<Item: Default> BinTree<Item> {
         }
     }
     /// pop the top value from a sorted tree and preserves order
-    pub fn pop_sorted(&mut self) -> Option<Item> where Item : PartialOrd {
+    pub fn pop_sorted(&mut self) -> Option<Item> {
         if self.is_empty() {
             None
         } else {
@@ -572,51 +572,7 @@ impl<Item: Default> BinTree<Item> {
             }
         }
     }
-    /// pop the top value from a sorted tree and preserves order (using key function)
-    pub fn pop_sorted_with_key<F,Key>(&mut self, key: &F) -> Option<Item> where
-        Key : PartialOrd,
-        F : Fn(&Item) -> &Key,
-    {
-        if self.is_empty() {
-            None
-        } else {
-            let_node_ref_mut!(self => value, left, right);
-            if left.is_empty() && right.is_empty() {
-                Some(take_value_replace_tree!(self,value,&mut Self::new()))
-            } else if right.is_empty() {
-                Some(take_value_replace_tree!(self,value,left))
-            } else if left.is_empty() {
-                Some(take_value_replace_tree!(self,value,right))
-            } else {
-                let min_right = right.min_tree_mut().expect("min right should always return some tree");
-                let min_right_value = min_right.value_mut().expect("min right should always return some item");
-                std::mem::swap(value,min_right_value);
-                min_right.pop_sorted_with_key(key)
-            }
-        }
-    }
-    /// pop the top value from a sorted tree and preserves order (using compare function)
-    pub fn pop_sorted_with_compare<F>(&mut self, compare: &F) -> Option<Item> where
-        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
-    {
-        if self.is_empty() {
-            None
-        } else {
-            let_node_ref_mut!(self => value, left, right);
-            if left.is_empty() && right.is_empty() {
-                Some(take_value_replace_tree!(self,value,&mut Self::new()))
-            } else if right.is_empty() {
-                Some(take_value_replace_tree!(self,value,left))
-            } else if left.is_empty() {
-                Some(take_value_replace_tree!(self,value,right))
-            } else {
-                let min_right = right.min_tree_mut().expect("min right should always return some tree");
-                let min_right_value = min_right.value_mut().expect("min right should always return some item");
-                std::mem::swap(value,min_right_value);
-                min_right.pop_sorted_with_compare(compare)
-            }
-        }
-    }
+
     /// pop from the left of tree
     pub fn pop_left(&mut self) -> Option<Item> {
         if self.is_empty() {
