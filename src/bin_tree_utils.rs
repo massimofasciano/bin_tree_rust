@@ -568,7 +568,11 @@ impl<Item: Default> BinTree<Item> {
                 let min_right = right.min_tree_mut().expect("min right should always return some tree");
                 let min_right_value = min_right.value_mut().expect("min right should always return some item");
                 std::mem::swap(value,min_right_value);
-                min_right.pop_sorted()
+                let result = min_right.pop_sorted();
+                // recalc only on the left path of the right subtree
+                right.recalculate_heights_rec(true,false);
+                self.height = std::cmp::max(left.height, right.height) + 1;
+                result
             }
         }
     }
@@ -896,5 +900,34 @@ mod test {
                 (((('i') <= 'l' => ('m')) <= 'n' => ('o' => ('r'))) <= 's' => (('t') <= 'v' => ('y')))\
             )"
         );
+    }
+
+    #[test]
+    fn pop_sorted_height_test() {
+        let s = "This is a very long string for my TEST!";
+        let mut t;
+
+        t = BinTree::new();
+        t.extend_sorted_unique(s.chars());
+        assert_eq!(t.len(),20);
+        assert_eq!(String::from_iter(t.to_vec().iter())," !ESTaefghilmnorstvy");
+        assert_eq!(t.height(),5);
+
+        assert_eq!(t.recalculate_heights(),false);
+        assert_eq!(t.pop_sorted(),Some('h'));
+        assert_eq!(t.recalculate_heights(),false);
+        assert_eq!(t.pop_sorted(),Some('i'));
+        assert_eq!(t.recalculate_heights(),false);
+        assert_eq!(t.pop_sorted(),Some('l'));
+        assert_eq!(t.recalculate_heights(),false);
+        assert_eq!(t.pop_sorted(),Some('m'));
+        assert_eq!(t.recalculate_heights(),false);
+
+        for _ in 0..t.len() {
+            assert_eq!(t.pop_sorted().is_some(),true);
+            assert_eq!(t.recalculate_heights(),false);
+        }
+
+        assert_eq!(t.is_empty(),true);        
     }
 }

@@ -1,3 +1,5 @@
+use crate::let_node_ref_mut;
+
 /// a general purpose binary tree
 #[derive(Debug,Clone,PartialEq)]
 pub struct BinTree<Item> {
@@ -173,6 +175,41 @@ impl<Item> BinTree<Item> {
     /// sets tree root
     pub fn set(&mut self, tree : BinTree<Item>) {
         *self = tree;
+    }
+    /// recalculate the height fields in the tree
+    /// return true if any height changed ?
+    pub fn recalculate_heights(&mut self) -> bool {
+        self.recalculate_heights_rec(true, true).1
+    }
+    /// recalculate the height fields in the tree
+    /// return (height of tree, any height changed ?)
+    /// recursion to left and/or right is optional (for special optimized cases)
+    pub fn recalculate_heights_rec(&mut self, rec_left : bool, rec_right : bool) -> (isize, bool) {
+        let mut changed = false;
+        if self.is_empty() {
+            self.height = 0;
+        } else {
+            let_node_ref_mut!(self => _value, left, right);
+            let mut height_left = left.height();
+            let mut height_right = right.height();
+            let mut changed_left = false;
+            let mut changed_right = false;
+            if rec_left {
+                (height_left, changed_left) = left.recalculate_heights_rec(rec_left,rec_right);
+            }
+            if rec_right {
+                (height_right, changed_right) = right.recalculate_heights_rec(rec_left,rec_right);
+            }
+            let height_rec = std::cmp::max(height_left,height_right) + 1;
+            if changed_left || changed_right {
+                changed = true;
+            }
+            if self.height != height_rec {
+                changed = true;
+                self.height = height_rec;
+            }
+        }
+        (self.height, changed)
     }
 }
 
