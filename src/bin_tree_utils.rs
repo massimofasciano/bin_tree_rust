@@ -99,6 +99,59 @@ impl<Item> BinTree<Item> {
         }
     }
 
+    /// rebalance a balanced binary tree
+    pub fn rebalance(&mut self) {
+        if !self.is_empty() {
+            if self.balance() < -1 && self.left().unwrap().balance() == -1 {
+                self.rotate_right();
+            } else if self.balance() > 1 && self.right().unwrap().balance() == 1 {
+                self.rotate_left();
+            } else if self.balance() < -1 && self.left().unwrap().balance() == 1 {
+                self.rotate_left_right();
+            } else if self.balance() > 1 && self.right().unwrap().balance() == -1 {
+                self.rotate_right_left();
+            }
+        } 
+    }
+    pub fn rotate_right(&mut self) {
+        if !self.is_empty() {
+            let mut l = std::mem::take(self.left_mut().unwrap());
+            let l_r = std::mem::take(l.right_mut().unwrap());
+            _ = std::mem::replace(self.left_mut().unwrap(), l_r);
+            let mut n = std::mem::take(self);
+            n.height = std::cmp::max(n.left().unwrap().height(),n.right().unwrap().height()) + 1;
+            _ = std::mem::replace(l.right_mut().unwrap(), n);
+            _ = std::mem::replace(self, l);
+            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+        }
+    }
+    pub fn rotate_left(&mut self) {
+        if !self.is_empty() {
+            let mut r = std::mem::take(self.right_mut().unwrap());
+            let r_l = std::mem::take(r.left_mut().unwrap());
+            _ = std::mem::replace(self.right_mut().unwrap(), r_l);
+            let mut n = std::mem::take(self);
+            n.height = std::cmp::max(n.left().unwrap().height(),n.right().unwrap().height()) + 1;
+            _ = std::mem::replace(r.left_mut().unwrap(), n);
+            _ = std::mem::replace(self, r);
+            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+        }
+    }
+    pub fn rotate_left_right(&mut self) {
+        if !self.is_empty() {
+            self.left_mut().unwrap().rotate_left();
+            self.rotate_right();
+            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+        }
+    }
+    pub fn rotate_right_left(&mut self) {
+        if !self.is_empty() {
+            self.right_mut().unwrap().rotate_right();
+            self.rotate_left();
+            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+        }
+    }
+
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare keys and a function to get key from item
     /// returns the replaced item when there is a duplicate (based on compare function)
@@ -118,6 +171,7 @@ impl<Item> BinTree<Item> {
                 _ => Some(std::mem::replace(item, new_item)),
             };
             self.height = std::cmp::max(left.height, right.height) + 1;
+            self.rebalance();
             result
         }
     }
@@ -780,51 +834,98 @@ mod test {
         assert_eq!(t.height(),1);
 
         t.extend_sorted_unique(vec![5,3,7,38,9,20,4,5,6,17,24,3,1,12,3,24,5,6,7,2,4,6,16]);
-        assert_eq!(t.height(),9);
+        // assert_eq!(t.height(),9);
+        assert_eq!(t.height(),5);
+        // assert_eq!(format!("{:?}",t),"\
+        //     BinTree { root: Some(BinTreeNode { value: 1, \
+        //         left: BinTree { root: None, height: 0 }, \
+        //         right: BinTree { root: Some(BinTreeNode { value: 5, \
+        //             left: BinTree { root: Some(BinTreeNode { value: 3, \
+        //                 left: BinTree { root: Some(BinTreeNode { value: 2, \
+        //                     left: BinTree { root: None, height: 0 }, \
+        //                     right: BinTree { root: None, height: 0 } }), \
+        //                     height: 1 }, \
+        //                 right: BinTree { root: Some(BinTreeNode { value: 4, \
+        //                     left: BinTree { root: None, height: 0 }, \
+        //                     right: BinTree { root: None, height: 0 } }), \
+        //                     height: 1 } }), \
+        //                 height: 2 }, \
+        //             right: BinTree { root: Some(BinTreeNode { value: 7, \
+        //                 left: BinTree { root: Some(BinTreeNode { value: 6, \
+        //                     left: BinTree { root: None, height: 0 }, \
+        //                     right: BinTree { root: None, height: 0 } }), \
+        //                     height: 1 }, \
+        //                 right: BinTree { root: Some(BinTreeNode { value: 38, \
+        //                     left: BinTree { root: Some(BinTreeNode { value: 9, \
+        //                         left: BinTree { root: None, height: 0 }, \
+        //                         right: BinTree { root: Some(BinTreeNode { value: 20, \
+        //                             left: BinTree { root: Some(BinTreeNode { value: 17, \
+        //                                 left: BinTree { root: Some(BinTreeNode { value: 12, \
+        //                                     left: BinTree { root: None, height: 0 }, \
+        //                                     right: BinTree { root: Some(BinTreeNode { value: 16, \
+        //                                         left: BinTree { root: None, height: 0 }, \
+        //                                         right: BinTree { root: None, height: 0 } }), \
+        //                                         height: 1 } }), \
+        //                                     height: 2 }, \
+        //                                 right: BinTree { root: None, height: 0 } }), \
+        //                                 height: 3 }, \
+        //                             right: BinTree { root: Some(BinTreeNode { value: 24, \
+        //                                 left: BinTree { root: None, height: 0 }, \
+        //                                 right: BinTree { root: None, height: 0 } }), \
+        //                                 height: 1 } }), \
+        //                             height: 4 } }), \
+        //                         height: 5 }, \
+        //                     right: BinTree { root: None, height: 0 } }), \
+        //                     height: 6 } }), \
+        //                 height: 7 } }), \
+        //             height: 8 } }), \
+        //         height: 9 }\
+        // ");
         assert_eq!(format!("{:?}",t),"\
-            BinTree { root: Some(BinTreeNode { value: 1, \
-                left: BinTree { root: None, height: 0 }, \
-                right: BinTree { root: Some(BinTreeNode { value: 5, \
-                    left: BinTree { root: Some(BinTreeNode { value: 3, \
-                        left: BinTree { root: Some(BinTreeNode { value: 2, \
-                            left: BinTree { root: None, height: 0 }, \
-                            right: BinTree { root: None, height: 0 } }), \
-                            height: 1 }, \
-                        right: BinTree { root: Some(BinTreeNode { value: 4, \
+            BinTree { root: Some(BinTreeNode { value: 7, \
+                left: BinTree { root: Some(BinTreeNode { value: 3, \
+                    left: BinTree { root: Some(BinTreeNode { value: 1, \
+                        left: BinTree { root: None, height: 0 }, \
+                        right: BinTree { root: Some(BinTreeNode { value: 2, \
                             left: BinTree { root: None, height: 0 }, \
                             right: BinTree { root: None, height: 0 } }), \
                             height: 1 } }), \
                         height: 2 }, \
-                    right: BinTree { root: Some(BinTreeNode { value: 7, \
-                        left: BinTree { root: Some(BinTreeNode { value: 6, \
+                    right: BinTree { root: Some(BinTreeNode { value: 5, \
+                        left: BinTree { root: Some(BinTreeNode { value: 4, \
                             left: BinTree { root: None, height: 0 }, \
                             right: BinTree { root: None, height: 0 } }), \
                             height: 1 }, \
-                        right: BinTree { root: Some(BinTreeNode { value: 38, \
-                            left: BinTree { root: Some(BinTreeNode { value: 9, \
-                                left: BinTree { root: None, height: 0 }, \
-                                right: BinTree { root: Some(BinTreeNode { value: 20, \
-                                    left: BinTree { root: Some(BinTreeNode { value: 17, \
-                                        left: BinTree { root: Some(BinTreeNode { value: 12, \
-                                            left: BinTree { root: None, height: 0 }, \
-                                            right: BinTree { root: Some(BinTreeNode { value: 16, \
-                                                left: BinTree { root: None, height: 0 }, \
-                                                right: BinTree { root: None, height: 0 } }), \
-                                                height: 1 } }), \
-                                            height: 2 }, \
-                                        right: BinTree { root: None, height: 0 } }), \
-                                        height: 3 }, \
-                                    right: BinTree { root: Some(BinTreeNode { value: 24, \
-                                        left: BinTree { root: None, height: 0 }, \
-                                        right: BinTree { root: None, height: 0 } }), \
-                                        height: 1 } }), \
-                                    height: 4 } }), \
-                                height: 5 }, \
+                        right: BinTree { root: Some(BinTreeNode { value: 6, \
+                            left: BinTree { root: None, height: 0 }, \
                             right: BinTree { root: None, height: 0 } }), \
-                            height: 6 } }), \
-                        height: 7 } }), \
-                    height: 8 } }), \
-                height: 9 }\
+                            height: 1 } }), \
+                        height: 2 } }), \
+                    height: 3 }, \
+                right: BinTree { root: Some(BinTreeNode { value: 20, \
+                    left: BinTree { root: Some(BinTreeNode { value: 12, \
+                        left: BinTree { root: Some(BinTreeNode { value: 9, \
+                            left: BinTree { root: None, height: 0 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 1 }, \
+                        right: BinTree { root: Some(BinTreeNode { value: 17, \
+                            left: BinTree { root: Some(BinTreeNode { value: 16, \
+                                left: BinTree { root: None, height: 0 }, \
+                                right: BinTree { root: None, height: 0 } }), \
+                                height: 1 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 2 } }), \
+                        height: 3 }, \
+                    right: BinTree { root: Some(BinTreeNode { value: 38, \
+                        left: BinTree { root: Some(BinTreeNode { value: 24, \
+                            left: BinTree { root: None, height: 0 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 1 }, \
+                        right: BinTree { root: None, height: 0 } }), \
+                        height: 2 } }), \
+                    height: 4 } }), \
+                height: 5 }\
         ");
+        assert_eq!(t.to_vec(),vec![1, 2, 3, 4, 5, 6, 7, 9, 12, 16, 17, 20, 24, 38]);
     }
 }

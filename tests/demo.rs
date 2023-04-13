@@ -104,7 +104,7 @@ fn demo() {
     let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();
     assert_eq!(t.to_string(),"[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]");
     assert_eq!(t.inner().to_string(),
-        "((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)");
+        "(((1 => (2)) <= 3 => (5)) <= 6 => (((7) <= 8 => (9)) <= 10 => (11 => (18))))");
     
     assert_eq!(t.contains(&2),true);
     assert_eq!(t.contains(&10),true);
@@ -113,7 +113,7 @@ fn demo() {
     assert_eq!(t.remove(&7),Some(7));
     assert_eq!(format!("{}",t),"[1, 2, 3, 5, 6, 8, 9, 10, 11, 18]");
     assert_eq!(t.to_tree_string(),
-        "((((1 => (2)) <= 3 => (5)) <= 6 => (8 => (((9) <= 10) <= 11))) <= 18)");
+        "(((1 => (2)) <= 3 => (5)) <= 6 => ((8 => (9)) <= 10 => (11 => (18))))");
 
     // binary tree map
     let mut t : BinTreeMap<char, usize> = BinTreeMap::new();

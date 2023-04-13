@@ -2,7 +2,7 @@
 #[derive(Debug,Clone,PartialEq)]
 pub struct BinTree<Item> {
     pub root: Option<Box<BinTreeNode<Item>>>,
-    pub height: usize, // this field is only updated when representing balanced trees
+    pub height: isize, // this field is only updated when representing balanced trees
 }
 
 /// a general purpose binary tree node
@@ -31,8 +31,17 @@ impl<Item> BinTree<Item> {
         Self { root : None, height : 0 }
     }
     /// height of tree
-    pub fn height(&self) -> usize {
+    pub fn height(&self) -> isize {
         self.height
+    }
+    /// balance of tree
+    pub fn balance(&self) -> isize {
+        if self.is_empty() {
+            0
+        } else {
+            self.right().unwrap().height()-
+            self.left().unwrap().height()
+        }
     }
     /// tests if tree is a branch (leaf is excluded although it is stored as a branch with empty children internally)
     pub fn is_branch(&self) -> bool {
