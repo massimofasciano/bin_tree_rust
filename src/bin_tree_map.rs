@@ -339,14 +339,13 @@ mod test {
         assert_eq!(t.len(),7);
 
         assert_eq!(t.to_tree_string(),"\
-                    ((((BinTreeMapEntry { key: KeyType(-876), value: ValueType(-182) }) \
-                <= BinTreeMapEntry { key: KeyType(-40), value: ValueType(234) }) \
-                    <= BinTreeMapEntry { key: KeyType(-20), value: ValueType(782) }) \
-            <= BinTreeMapEntry { key: KeyType(33), value: ValueType(14) } => \
-                    ((BinTreeMapEntry { key: KeyType(110), value: ValueType(-1) }) \
-                <= BinTreeMapEntry { key: KeyType(130), value: ValueType(-2) } => \
-                    (BinTreeMapEntry { key: KeyType(3330), value: ValueType(-1782) })))\
-        ");
+                        (((BinTreeMapEntry { key: KeyType(-876), value: ValueType(-182) }) \
+                    <= BinTreeMapEntry { key: KeyType(-40), value: ValueType(234) } => \
+                        (BinTreeMapEntry { key: KeyType(-20), value: ValueType(782) })) \
+                <= BinTreeMapEntry { key: KeyType(33), value: ValueType(14) } => \
+                        ((BinTreeMapEntry { key: KeyType(110), value: ValueType(-1) }) \
+                    <= BinTreeMapEntry { key: KeyType(130), value: ValueType(-2) } => \
+                        (BinTreeMapEntry { key: KeyType(3330), value: ValueType(-1782) })))");
 
         assert_eq!(format!("{:?}",t.keys().collect::<Vec<_>>()),
             "[KeyType(-876), KeyType(-40), KeyType(-20), KeyType(33), KeyType(110), KeyType(130), KeyType(3330)]");

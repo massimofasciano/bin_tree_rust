@@ -315,7 +315,10 @@ impl<Item> BinTree<Item> {
     {
         self.remove_sorted_to_key_cmp(target_value, &|x|x, cmp, true)
     }
-    /// try to remove with compare function from a sorted tree and preserve order
+    /// try to remove sorted tree and preserve order
+    /// uses key and compare functions
+    /// optional rebalancing
+    /// heights are preserved
     pub fn remove_sorted_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, target_key : &Key, 
         to_key: &FtoKey, cmp : &Fcmp, rebalance : bool) -> Option<Item> where 
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
@@ -332,6 +335,7 @@ impl<Item> BinTree<Item> {
                 _ => self.pop_sorted(),
             };
             self.update_height();
+            if rebalance { self.rebalance(); }
             result
         }
     }
