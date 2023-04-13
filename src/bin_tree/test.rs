@@ -489,3 +489,27 @@ fn remove_sorted_height_test() {
 
     assert_eq!(t.is_empty(),true);        
 }
+
+// to enable random balancing test, test with 
+// cargo test --features rand to enable (or --all-features)
+#[cfg(feature = "rand")]
+#[test]
+fn random_balance_test() {
+    use rand::{thread_rng, Rng};
+
+    let mut rng = thread_rng();
+    let n = 8192u16;
+    let mut t = BinTree::new();
+
+    t.insert_unique(n);
+
+    for _ in 0..n {
+        t.insert_unique(rng.gen());
+        assert_eq!(t.is_balanced(),true);
+    }
+    // assert_eq!(t.height(),16);
+    for _ in 0..n {
+        t.remove_sorted(&rng.gen());
+        assert_eq!(t.is_balanced(),true);
+    }
+}

@@ -8,4 +8,4 @@ derive_more = "0.99.17"
 rand = { version = "0.8.5", optional = true }
 
 [features]
-default = []
+default = ["rand"]

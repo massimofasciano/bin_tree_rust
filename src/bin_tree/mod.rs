@@ -82,6 +82,18 @@ impl<Item> BinTree<Item> {
             self.left().unwrap().height()
         }
     }
+    /// is the tree balanced ?
+    pub fn is_balanced(&self) -> bool {
+        if self.is_empty() {
+            true
+        } else {
+            let b = self.balance();
+            b >= -1 && 
+            b <= 1 && 
+            self.left().unwrap().is_balanced() &&
+            self.right().unwrap().is_balanced()
+        }
+    }
     /// tests if tree is a branch (leaf is excluded although it is stored as a branch with empty children internally)
     pub fn is_branch(&self) -> bool {
         !self.is_empty() &&
