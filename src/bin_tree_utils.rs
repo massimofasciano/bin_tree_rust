@@ -532,6 +532,7 @@ macro_rules! take_value_replace_tree {
 
 impl<Item: Default> BinTree<Item> {
     /// pop the top item from the tree
+    /// heights are not adjusted
     pub fn pop(&mut self) -> Option<Item> {
         if self.is_empty() {
             None
@@ -553,6 +554,7 @@ impl<Item: Default> BinTree<Item> {
         }
     }
     /// pop the top value from a sorted tree and preserves order
+    /// heights are adjusted
     pub fn pop_sorted(&mut self) -> Option<Item> {
         if self.is_empty() {
             None
