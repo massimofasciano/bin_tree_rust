@@ -1,5 +1,21 @@
 use crate::let_node_ref_mut;
 
+/// various tools for the binary tree
+pub mod utils;
+pub use self::utils::*;
+
+/// tools for the binary tree that use bits of unsafe code
+pub mod utils_unsafe;
+pub use self::utils_unsafe::*;
+
+/// iterators (owned,ref,mut) over a binary tree with 4 traversal methods
+pub mod iter;
+pub use self::iter::*;
+
+/// a formatted tree container shows how to implement custom display behavior
+pub mod formatted;
+pub use self::formatted::*;
+
 /// a general purpose binary tree
 #[derive(Debug,Clone,PartialEq)]
 pub struct BinTree<Item> {
@@ -239,97 +255,5 @@ pub fn leaf<T>(value: T) -> BinTree<T> {
     BinTree::new_leaf(value)
 }
 
-/// some tests
 #[cfg(test)]
-mod test {
-    use crate::{BinTree, tree, leaf};
-
-    fn test_tree() -> BinTree<i32> {
-        tree(1,
-            tree(2,
-                leaf(3),
-                ()
-            ),
-            tree(4,
-                (),
-                tree(5,
-                    leaf(6),
-                    ()
-        )))
-    }
-
-    #[test]
-    fn eq_test() {
-        let bt = 
-            BinTree::new_node(1,
-                BinTree::new_node(2,
-                    BinTree::new_leaf(3),
-                    BinTree::new(),
-                ),
-                BinTree::new_node(4,
-                    BinTree::new(),
-                    BinTree::new_node(5, 
-                        BinTree::new_leaf(6), 
-                        BinTree::new()
-                    )
-                )
-            );
-        let t = test_tree();
-        assert_eq!(t,bt);
-    }
-
-    #[test]
-    fn basic_access_test() {
-        let mut tree : BinTree<i32> = Default::default();
-        assert_eq!(tree.is_empty(),true);
-        tree = BinTree::new_leaf(10);
-        assert_eq!(tree.is_leaf(),true);
-        assert_eq!(tree.value().unwrap(),&10);
-        *tree.left_mut().unwrap() = BinTree::new_leaf(20);
-        assert_eq!(tree.is_leaf(),false);
-        assert_eq!(tree.is_branch(),true);
-        assert_eq!(tree.to_string(),"((20) <= 10)");
-        *tree.left_mut().unwrap() = BinTree::new();
-        *tree.right_mut().unwrap() = BinTree::new_leaf(30);
-        assert_eq!(tree.is_empty(),false);
-        assert_eq!(tree.is_leaf(),false);
-        assert_eq!(tree.is_branch(),true);
-        assert_eq!(tree.to_string(),"(10 => (30))");
-        *tree.get_mut(&30).unwrap() = 40;
-        assert_eq!(tree.to_string(),"(10 => (40))");
-        let subtree = tree.get_tree_mut(&40).unwrap();
-        *subtree = BinTree::new_leaf(50);
-        assert_eq!(tree.to_string(),"(10 => (50))");
-        *tree.get_sorted_mut(&50).unwrap() = 60;
-        assert_eq!(tree.to_string(),"(10 => (60))");
-        let subtree = tree.get_tree_sorted_mut(&60).unwrap();
-        *subtree = BinTree::new_leaf(70);
-        assert_eq!(tree.to_string(),"(10 => (70))");
-    }
-
-    #[test]
-    fn test_init_height() {
-        let t = test_tree();
-
-        assert_eq!(format!("{:?}",t),"\
-            BinTree { root: Some(BinTreeNode { value: 1, \
-                left: BinTree { root: Some(BinTreeNode { value: 2, \
-                    left: BinTree { root: Some(BinTreeNode { value: 3, \
-                        left: BinTree { root: None, height: 0 }, \
-                        right: BinTree { root: None, height: 0 } }), \
-                        height: 1 }, \
-                    right: BinTree { root: None, height: 0 } }), \
-                    height: 2 }, \
-                right: BinTree { root: Some(BinTreeNode { value: 4, \
-                    left: BinTree { root: None, height: 0 }, \
-                    right: BinTree { root: Some(BinTreeNode { value: 5, \
-                        left: BinTree { root: Some(BinTreeNode { value: 6, \
-                            left: BinTree { root: None, height: 0 }, \
-                            right: BinTree { root: None, height: 0 } }), \
-                            height: 1 }, \
-                        right: BinTree { root: None, height: 0 } }), \
-                        height: 2 } }), \
-                    height: 3 } }), \
-                height: 4 }");
-    }
-}
+mod test;
