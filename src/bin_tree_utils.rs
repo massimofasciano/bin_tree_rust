@@ -112,11 +112,13 @@ impl<Item> BinTree<Item> {
             None
         } else {
             let_node_ref_mut!(self => item, left, right);
-            match cmp(to_key(&new_item), to_key(item)) {
+            let result = match cmp(to_key(&new_item), to_key(item)) {
                 Some(std::cmp::Ordering::Less) => left.push_sorted_unique_to_key_cmp(new_item,to_key,cmp),
                 Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_to_key_cmp(new_item,to_key,cmp),
                 _ => Some(std::mem::replace(item, new_item)),
-            }
+            };
+            self.height = std::cmp::max(left.height, right.height) + 1;
+            result
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
@@ -767,5 +769,62 @@ mod test {
         // The tree is not sorted anymore because we used a mut reference to change a value
         // without using a normal insertion that preserves order.
         assert_eq!(t.to_vec(),vec!["do you like the borrow checker?", "hello there", "hello my name is Rusty"]);
+    }
+
+    #[test]
+    fn test_height() {
+        let mut t = BinTree::new();
+        assert_eq!(t.height(),0);
+
+        t.push_sorted_unique(1);
+        assert_eq!(t.height(),1);
+
+        t.extend_sorted_unique(vec![5,3,7,38,9,20,4,5,6,17,24,3,1,12,3,24,5,6,7,2,4,6,16]);
+        assert_eq!(t.height(),9);
+        assert_eq!(format!("{:?}",t),"\
+            BinTree { root: Some(BinTreeNode { value: 1, \
+                left: BinTree { root: None, height: 0 }, \
+                right: BinTree { root: Some(BinTreeNode { value: 5, \
+                    left: BinTree { root: Some(BinTreeNode { value: 3, \
+                        left: BinTree { root: Some(BinTreeNode { value: 2, \
+                            left: BinTree { root: None, height: 0 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 1 }, \
+                        right: BinTree { root: Some(BinTreeNode { value: 4, \
+                            left: BinTree { root: None, height: 0 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 1 } }), \
+                        height: 2 }, \
+                    right: BinTree { root: Some(BinTreeNode { value: 7, \
+                        left: BinTree { root: Some(BinTreeNode { value: 6, \
+                            left: BinTree { root: None, height: 0 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 1 }, \
+                        right: BinTree { root: Some(BinTreeNode { value: 38, \
+                            left: BinTree { root: Some(BinTreeNode { value: 9, \
+                                left: BinTree { root: None, height: 0 }, \
+                                right: BinTree { root: Some(BinTreeNode { value: 20, \
+                                    left: BinTree { root: Some(BinTreeNode { value: 17, \
+                                        left: BinTree { root: Some(BinTreeNode { value: 12, \
+                                            left: BinTree { root: None, height: 0 }, \
+                                            right: BinTree { root: Some(BinTreeNode { value: 16, \
+                                                left: BinTree { root: None, height: 0 }, \
+                                                right: BinTree { root: None, height: 0 } }), \
+                                                height: 1 } }), \
+                                            height: 2 }, \
+                                        right: BinTree { root: None, height: 0 } }), \
+                                        height: 3 }, \
+                                    right: BinTree { root: Some(BinTreeNode { value: 24, \
+                                        left: BinTree { root: None, height: 0 }, \
+                                        right: BinTree { root: None, height: 0 } }), \
+                                        height: 1 } }), \
+                                    height: 4 } }), \
+                                height: 5 }, \
+                            right: BinTree { root: None, height: 0 } }), \
+                            height: 6 } }), \
+                        height: 7 } }), \
+                    height: 8 } }), \
+                height: 9 }\
+        ");
     }
 }
