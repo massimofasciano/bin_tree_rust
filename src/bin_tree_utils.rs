@@ -155,8 +155,8 @@ impl<Item> BinTree<Item> {
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare keys and a function to get key from item
     /// returns the replaced item when there is a duplicate (based on compare function)
-    pub fn push_sorted_unique_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, new_item : Item, to_key: &FtoKey, cmp : &Fcmp) 
-        -> Option<Item> where 
+    pub fn push_sorted_unique_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, new_item : Item, 
+        to_key: &FtoKey, cmp : &Fcmp, rebalance : bool) -> Option<Item> where 
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
         FtoKey : Fn(&Item) -> &Key,
     {
@@ -166,19 +166,19 @@ impl<Item> BinTree<Item> {
         } else {
             let_node_ref_mut!(self => item, left, right);
             let result = match cmp(to_key(&new_item), to_key(item)) {
-                Some(std::cmp::Ordering::Less) => left.push_sorted_unique_to_key_cmp(new_item,to_key,cmp),
-                Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_to_key_cmp(new_item,to_key,cmp),
+                Some(std::cmp::Ordering::Less) => left.push_sorted_unique_to_key_cmp(new_item,to_key,cmp,rebalance),
+                Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_to_key_cmp(new_item,to_key,cmp,rebalance),
                 _ => Some(std::mem::replace(item, new_item)),
             };
             self.height = std::cmp::max(left.height, right.height) + 1;
-            self.rebalance();
+            if rebalance { self.rebalance(); }
             result
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// returns bool indicating if a new item was added
     pub fn push_sorted_unique(&mut self, new_item : Item) -> bool where Item : PartialOrd {
-        self.push_sorted_unique_to_key_cmp(new_item,&|i|i,&Item::partial_cmp).is_none()
+        self.push_sorted_unique_to_key_cmp(new_item,&|i|i,&Item::partial_cmp,true).is_none()
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare
@@ -186,7 +186,7 @@ impl<Item> BinTree<Item> {
     pub fn push_sorted_unique_cmp<Fcmp>(&mut self, new_item : Item, cmp : &Fcmp) -> Option<Item> where 
         Fcmp : Fn(&Item, &Item) -> Option<std::cmp::Ordering>
     {
-        self.push_sorted_unique_to_key_cmp(new_item,&|i|i,cmp)
+        self.push_sorted_unique_to_key_cmp(new_item,&|i|i,cmp,true)
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare based on keys
@@ -195,7 +195,7 @@ impl<Item> BinTree<Item> {
         Key : PartialOrd,
         FtoKey : Fn(&Item) -> &Key,
     {
-        self.push_sorted_unique_to_key_cmp(new_item,to_key,&Key::partial_cmp)
+        self.push_sorted_unique_to_key_cmp(new_item,to_key,&Key::partial_cmp,true)
     }
 
     /// extend a sorted or empty tree with no duplicates and keeps both properties
