@@ -48,17 +48,26 @@ impl<Item> BinTree<Item> {
             self.get_mut_sorted_to_key_cmp(target_value, &|x|x, &Item::partial_cmp)
         }
 
-        /// find a value in a sorted tree and return mutable ref
-        pub fn get_tree_sorted_mut(&mut self, value : &Item) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+        /// find a value in a sorted tree with key and compare functions and return mut ref
+        pub fn get_tree_mut_sorted_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, target_key : &Key,
+            to_key: &FtoKey, cmp : &Fcmp) -> Option<&mut BinTree<Item>> where 
+            Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
+            FtoKey : Fn(&Item) -> &Key,
+        {
             if self.is_empty() {
                 None
-            } else if *value < *self.value().unwrap() {
-                self.left_mut().unwrap().get_tree_sorted_mut(value)
-            } else if *value > *self.value().unwrap() {
-                self.right_mut().unwrap().get_tree_sorted_mut(value)
             } else {
-                Some(self)
+                match cmp(target_key, to_key(self.value().unwrap())) {
+                    Some(std::cmp::Ordering::Less) => self.left_mut().unwrap().get_tree_mut_sorted_to_key_cmp(target_key,to_key,cmp),
+                    Some(std::cmp::Ordering::Greater) => self.right_mut().unwrap().get_tree_mut_sorted_to_key_cmp(target_key,to_key,cmp),
+                    _ => Some(self),
+                }
             }
+        }
+
+        /// find a value in a sorted tree and return mutable ref
+        pub fn get_tree_mut_sorted(&mut self, value : &Item) -> Option<&mut BinTree<Item>> where Item : PartialOrd {
+            self.get_tree_mut_sorted_to_key_cmp(value, &|x|x, &Item::partial_cmp)
         }
 
         /// find a value in a tree and return mutable ref (no ordering assumed)

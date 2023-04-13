@@ -58,7 +58,7 @@ fn basic_access_test() {
     assert_eq!(tree.to_string(),"(10 => (50))");
     *tree.get_mut_sorted(&50).unwrap() = 60;
     assert_eq!(tree.to_string(),"(10 => (60))");
-    let subtree = tree.get_tree_sorted_mut(&60).unwrap();
+    let subtree = tree.get_tree_mut_sorted(&60).unwrap();
     *subtree = BinTree::new_leaf(70);
     assert_eq!(tree.to_string(),"(10 => (70))");
 }
