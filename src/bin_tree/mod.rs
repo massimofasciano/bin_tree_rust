@@ -8,6 +8,18 @@ pub use self::utils::*;
 pub mod utils_unsafe;
 pub use self::utils_unsafe::*;
 
+/// tools for the binary tree (for insertions)
+pub mod utils_insertion;
+pub use self::utils_insertion::*;
+
+/// tools for the binary tree (for removals)
+pub mod utils_removal;
+pub use self::utils_removal::*;
+
+/// tools for the binary tree (for lookup/get)
+pub mod utils_lookup;
+pub use self::utils_lookup::*;
+
 /// iterators (owned,ref,mut) over a binary tree with 4 traversal methods
 pub mod iter;
 pub use self::iter::*;
