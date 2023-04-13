@@ -279,6 +279,7 @@ impl<Item> BinTree<Item> {
         }
     }
     /// try to remove value from a tree
+    /// heights are not adjusted
     pub fn remove(&mut self, target_value : &Item) -> Option<Item> where Item : PartialEq + Default {
         if self.is_empty() {
             None
@@ -297,56 +298,41 @@ impl<Item> BinTree<Item> {
     }
     /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd + Default {
-        if self.is_empty() {
-            None
-        } else {
-            let_node_ref_mut!(self => value, left, right);
-            if *target_value < *value {
-                left.remove_sorted(target_value)
-            } else if *target_value > *value {
-                right.remove_sorted(target_value)
-            } else {
-                self.pop_sorted()
-            }
-        }
+        self.remove_sorted_to_key_cmp(target_value, &|x|x, &Item::partial_cmp, true)
     }
     /// try to remove with key from a sorted tree and preserve order
-    pub fn remove_sorted_with_key<F,Key>(&mut self, target_value : &Key, key: &F) -> Option<Item> where
+    pub fn remove_sorted_with_key<FtoKey,Key>(&mut self, target_key : &Key, to_key: &FtoKey) -> Option<Item> where
         Key : PartialOrd,
-        F : Fn(&Item) -> &Key,
+        FtoKey : Fn(&Item) -> &Key,
         Item : Default,
     {
-        if self.is_empty() {
-            None
-        } else {
-            let_node_ref_mut!(self => value, left, right);
-            if target_value < key(value) {
-                left.remove_sorted_with_key(target_value,key)
-            } else if target_value > key(value) {
-                right.remove_sorted_with_key(target_value,key)
-            } else {
-                self.pop_sorted()
-            }
-        }
+        self.remove_sorted_to_key_cmp(target_key, to_key, &Key::partial_cmp, true)
     }
     /// try to remove with compare function from a sorted tree and preserve order
-    pub fn remove_sorted_with_compare<F>(&mut self, target_value : &Item, compare : &F) -> Option<Item> where
+    pub fn remove_sorted_cmp<F>(&mut self, target_value : &Item, cmp : &F) -> Option<Item> where
         F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
         Item : Default,
     {
+        self.remove_sorted_to_key_cmp(target_value, &|x|x, cmp, true)
+    }
+    /// try to remove with compare function from a sorted tree and preserve order
+    pub fn remove_sorted_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, target_key : &Key, 
+        to_key: &FtoKey, cmp : &Fcmp, rebalance : bool) -> Option<Item> where 
+        Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
+        FtoKey : Fn(&Item) -> &Key,
+        Item : Default,
+    {
         if self.is_empty() {
             None
         } else {
             let_node_ref_mut!(self => value, left, right);
-            match compare(target_value, value) {
-                Some(std::cmp::Ordering::Less) => left.remove_sorted_with_compare(target_value,compare),
-                Some(std::cmp::Ordering::Greater) => right.remove_sorted_with_compare(target_value,compare),
+            match cmp(target_key, to_key(value)) {
+                Some(std::cmp::Ordering::Less) => left.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
+                Some(std::cmp::Ordering::Greater) => right.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
                 _ => self.pop_sorted(),
             }
         }
     }
-
-
 
     /// find a value in a sorted tree
     pub fn contains_sorted(&self, target_value : &Item) -> bool where Item : PartialOrd {
@@ -803,7 +789,7 @@ mod test {
         for s in &t {
             assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
         }
-        assert_eq!(t.remove_sorted_with_compare(&"hello world!", cmp),Some("hello world!"));
+        assert_eq!(t.remove_sorted_cmp(&"hello world!", cmp),Some("hello world!"));
         assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
         let s = t.get_sorted_mut_with_compare(&"hello", cmp).unwrap();
         assert_eq!(s,&"hello");

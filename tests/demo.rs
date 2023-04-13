@@ -88,7 +88,7 @@ fn demo() {
     for s in &t {
         assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
     }
-    assert_eq!(t.remove_sorted_with_compare(&"hello world!", cmp),Some("hello world!"));
+    assert_eq!(t.remove_sorted_cmp(&"hello world!", cmp),Some("hello world!"));
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
     let s = t.get_sorted_mut_with_compare(&"hello", cmp).unwrap();
     assert_eq!(s,&"hello");
