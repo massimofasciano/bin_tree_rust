@@ -834,53 +834,7 @@ mod test {
         assert_eq!(t.height(),1);
 
         t.extend_sorted_unique(vec![5,3,7,38,9,20,4,5,6,17,24,3,1,12,3,24,5,6,7,2,4,6,16]);
-        // assert_eq!(t.height(),9);
         assert_eq!(t.height(),5);
-        // assert_eq!(format!("{:?}",t),"\
-        //     BinTree { root: Some(BinTreeNode { value: 1, \
-        //         left: BinTree { root: None, height: 0 }, \
-        //         right: BinTree { root: Some(BinTreeNode { value: 5, \
-        //             left: BinTree { root: Some(BinTreeNode { value: 3, \
-        //                 left: BinTree { root: Some(BinTreeNode { value: 2, \
-        //                     left: BinTree { root: None, height: 0 }, \
-        //                     right: BinTree { root: None, height: 0 } }), \
-        //                     height: 1 }, \
-        //                 right: BinTree { root: Some(BinTreeNode { value: 4, \
-        //                     left: BinTree { root: None, height: 0 }, \
-        //                     right: BinTree { root: None, height: 0 } }), \
-        //                     height: 1 } }), \
-        //                 height: 2 }, \
-        //             right: BinTree { root: Some(BinTreeNode { value: 7, \
-        //                 left: BinTree { root: Some(BinTreeNode { value: 6, \
-        //                     left: BinTree { root: None, height: 0 }, \
-        //                     right: BinTree { root: None, height: 0 } }), \
-        //                     height: 1 }, \
-        //                 right: BinTree { root: Some(BinTreeNode { value: 38, \
-        //                     left: BinTree { root: Some(BinTreeNode { value: 9, \
-        //                         left: BinTree { root: None, height: 0 }, \
-        //                         right: BinTree { root: Some(BinTreeNode { value: 20, \
-        //                             left: BinTree { root: Some(BinTreeNode { value: 17, \
-        //                                 left: BinTree { root: Some(BinTreeNode { value: 12, \
-        //                                     left: BinTree { root: None, height: 0 }, \
-        //                                     right: BinTree { root: Some(BinTreeNode { value: 16, \
-        //                                         left: BinTree { root: None, height: 0 }, \
-        //                                         right: BinTree { root: None, height: 0 } }), \
-        //                                         height: 1 } }), \
-        //                                     height: 2 }, \
-        //                                 right: BinTree { root: None, height: 0 } }), \
-        //                                 height: 3 }, \
-        //                             right: BinTree { root: Some(BinTreeNode { value: 24, \
-        //                                 left: BinTree { root: None, height: 0 }, \
-        //                                 right: BinTree { root: None, height: 0 } }), \
-        //                                 height: 1 } }), \
-        //                             height: 4 } }), \
-        //                         height: 5 }, \
-        //                     right: BinTree { root: None, height: 0 } }), \
-        //                     height: 6 } }), \
-        //                 height: 7 } }), \
-        //             height: 8 } }), \
-        //         height: 9 }\
-        // ");
         assert_eq!(format!("{:?}",t),"\
             BinTree { root: Some(BinTreeNode { value: 7, \
                 left: BinTree { root: Some(BinTreeNode { value: 3, \
@@ -927,5 +881,38 @@ mod test {
                 height: 5 }\
         ");
         assert_eq!(t.to_vec(),vec![1, 2, 3, 4, 5, 6, 7, 9, 12, 16, 17, 20, 24, 38]);
+    }
+
+    #[test]
+    fn test_rebalance_off_on() {
+        let s = "This is a very long string for my TEST!";
+        let mut t;
+
+        t = BinTree::new();
+        for c in s.chars() {
+            t.push_sorted_unique_to_key_cmp(c,&|c|c,&char::partial_cmp,false);
+        }
+        assert_eq!(t.height(),9);
+        assert_eq!(t.to_string(),
+            "(\
+                (' ' => (('!') <= 'E' => ('S'))) \
+            <= 'T' => \
+                (('a' => ('e' => (('f') <= 'g'))) <= 'h' => ('i' => \
+                    ((('l' => ((('m') <= 'n') <= 'o')) <= 'r') <= 's' => (('t') <= 'v' => ('y')))))\
+            )"
+        );
+
+        t = BinTree::new();
+        for c in s.chars() {
+            t.push_sorted_unique_to_key_cmp(c,&|c|c,&char::partial_cmp,true);
+        }
+        assert_eq!(t.height(),5);
+        assert_eq!(t.to_string(),
+            "(\
+                (((' ' => ('!')) <= 'E' => (('S') <= 'T' => ('a'))) <= 'e' => (('f') <= 'g')) \
+            <= 'h' => \
+                (((('i') <= 'l' => ('m')) <= 'n' => ('o' => ('r'))) <= 's' => (('t') <= 'v' => ('y')))\
+            )"
+        );
     }
 }
