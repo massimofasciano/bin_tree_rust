@@ -78,12 +78,12 @@ fn demo() {
     // type for the values (like BinTreeMap does with insertion of BinTreeMapEntry).
     let mut t = BinTree::new();
     let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
-    t.push_sorted_unique_with_compare("hello there", cmp);
-    t.push_sorted_unique_with_compare("hello there!", cmp);
-    t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
+    t.push_sorted_unique_cmp("hello there", cmp);
+    t.push_sorted_unique_cmp("hello there!", cmp);
+    t.push_sorted_unique_cmp("hello my name is Rusty", cmp);
     // "hello world!" replaces "hello there!" because same length...
-    assert_eq!(t.push_sorted_unique_with_compare("hello world!", cmp),Some("hello there!")); 
-    assert_eq!(t.push_sorted_unique_with_compare("hello", cmp),None);
+    assert_eq!(t.push_sorted_unique_cmp("hello world!", cmp),Some("hello there!")); 
+    assert_eq!(t.push_sorted_unique_cmp("hello", cmp),None);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
     for s in &t {
         assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));

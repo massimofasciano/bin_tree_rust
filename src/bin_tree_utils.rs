@@ -98,63 +98,50 @@ impl<Item> BinTree<Item> {
             self.push_sorted(elem);
         }
     }
+
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
-    /// returns bool indicating if a new item was added
-    pub fn push_sorted_unique(&mut self, new_item : Item) -> bool where Item : PartialOrd {
-        if self.is_empty() {
-            *self = Self::new_leaf(new_item);
-            true
-        } else {
-            let_node_ref_mut!(self => item, left, right);
-            if new_item < *item {
-                left.push_sorted_unique(new_item)
-            } else if new_item > *item {
-                right.push_sorted_unique(new_item)
-            } else {
-                *item = new_item;
-                false
-            }
-        }
-    }
-    /// push onto a sorted or empty tree with no duplicates and keeps both properties
-    /// use a function to compare
+    /// use a function to compare keys and a function to get key from item
     /// returns the replaced item when there is a duplicate (based on compare function)
-    pub fn push_sorted_unique_with_compare<F>(&mut self, new_item : Item, compare : &F) -> Option<Item> where 
-        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>
+    pub fn push_sorted_unique_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, new_item : Item, to_key: &FtoKey, cmp : &Fcmp) 
+        -> Option<Item> where 
+        Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
+        FtoKey : Fn(&Item) -> &Key,
     {
         if self.is_empty() {
             *self = Self::new_leaf(new_item);
             None
         } else {
             let_node_ref_mut!(self => item, left, right);
-            match compare(&new_item, item) {
-                Some(std::cmp::Ordering::Less) => left.push_sorted_unique_with_compare(new_item,compare),
-                Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_with_compare(new_item,compare),
+            match cmp(to_key(&new_item), to_key(item)) {
+                Some(std::cmp::Ordering::Less) => left.push_sorted_unique_to_key_cmp(new_item,to_key,cmp),
+                Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_to_key_cmp(new_item,to_key,cmp),
                 _ => Some(std::mem::replace(item, new_item)),
             }
         }
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// returns bool indicating if a new item was added
+    pub fn push_sorted_unique(&mut self, new_item : Item) -> bool where Item : PartialOrd {
+        self.push_sorted_unique_to_key_cmp(new_item,&|i|i,&Item::partial_cmp).is_none()
+    }
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties
+    /// use a function to compare
+    /// returns the replaced item when there is a duplicate (based on compare function)
+    pub fn push_sorted_unique_cmp<Fcmp>(&mut self, new_item : Item, cmp : &Fcmp) -> Option<Item> where 
+        Fcmp : Fn(&Item, &Item) -> Option<std::cmp::Ordering>
+    {
+        self.push_sorted_unique_to_key_cmp(new_item,&|i|i,cmp)
+    }
+    /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare based on keys
     /// return the old item when overwriting
-    pub fn push_sorted_unique_with_key<F,Key>(&mut self, new_item : Item, key : &F) -> Option<Item> where 
+    pub fn push_sorted_unique_to_key<FtoKey,Key>(&mut self, new_item : Item, to_key : &FtoKey) -> Option<Item> where 
         Key : PartialOrd,
-        F : Fn(&Item) -> &Key
+        FtoKey : Fn(&Item) -> &Key,
     {
-        if self.is_empty() {
-            *self = Self::new_leaf(new_item);
-            None
-        } else {
-            let_node_ref_mut!(self => item, left, right);
-            if key(&new_item) < key(item) {
-                left.push_sorted_unique_with_key(new_item,key)
-            } else if key(&new_item) > key(item) {
-                right.push_sorted_unique_with_key(new_item,key)
-            } else {
-                Some(std::mem::replace(item, new_item))
-            }
-        }
+        self.push_sorted_unique_to_key_cmp(new_item,to_key,&Key::partial_cmp)
     }
+
     /// extend a sorted or empty tree with no duplicates and keeps both properties
     pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) -> usize where Item : PartialOrd {
         let mut count = 0;
@@ -165,6 +152,7 @@ impl<Item> BinTree<Item> {
         }
         count
     }
+
     /// push to the right branch of a tree (linear tree)
     pub fn push_right(&mut self, new_item : Item) {
         if let Some(right) = self.right_mut() {
@@ -761,12 +749,12 @@ mod test {
     fn ordered_compare_test() {
         let mut t = BinTree::new();
         let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
-        t.push_sorted_unique_with_compare("hello there", cmp);
-        t.push_sorted_unique_with_compare("hello there!", cmp);
-        t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
+        t.push_sorted_unique_cmp("hello there", cmp);
+        t.push_sorted_unique_cmp("hello there!", cmp);
+        t.push_sorted_unique_cmp("hello my name is Rusty", cmp);
         // "hello world!" replaces "hello there!" because same length...
-        assert_eq!(t.push_sorted_unique_with_compare("hello world!", cmp),Some("hello there!")); 
-        assert_eq!(t.push_sorted_unique_with_compare("hello", cmp),None);
+        assert_eq!(t.push_sorted_unique_cmp("hello world!", cmp),Some("hello there!")); 
+        assert_eq!(t.push_sorted_unique_cmp("hello", cmp),None);
         assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
         for s in &t {
             assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
