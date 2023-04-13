@@ -499,17 +499,22 @@ fn random_balance_test() {
 
     let mut rng = thread_rng();
     let n = 8192u16;
+    let rn = 32768;
     let mut t = BinTree::new();
 
     t.insert_unique(n);
+    t.remove_sorted(&n);
+    assert_eq!(t.is_empty(),true);
 
     for _ in 0..n {
         t.insert_unique(rng.gen());
         assert_eq!(t.recalculate_heights(),false);
         assert_eq!(t.is_balanced(),true);
     }
-    // assert_eq!(t.height(),16);
-    for _ in 0..n {
+    // height should not exceed 1.44*log2(n)
+    let max_height = (1.44 * (n as f64).log2()).ceil() as isize;
+    assert!(t.height() <= max_height);
+    for _ in 0..rn {
         t.remove_sorted(&rng.gen());
         assert_eq!(t.recalculate_heights(),false);
         assert_eq!(t.is_balanced(),true);
