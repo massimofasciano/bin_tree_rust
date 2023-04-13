@@ -36,6 +36,15 @@ impl<Item> BinTree<Item> {
     pub fn height(&self) -> isize {
         self.height
     }
+    /// height of tree
+    pub fn update_height(&mut self) -> isize {
+        if !self.is_empty() {
+            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+            self.height
+        } else {
+            0
+        }
+    }
     /// balance of tree
     pub fn balance(&self) -> isize {
         if self.is_empty() {

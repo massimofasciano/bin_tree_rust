@@ -100,7 +100,7 @@ impl<Item> BinTree<Item> {
             n.height = std::cmp::max(n.left().unwrap().height(),n.right().unwrap().height()) + 1;
             _ = std::mem::replace(l.right_mut().unwrap(), n);
             _ = std::mem::replace(self, l);
-            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+            self.update_height();
         }
     }
     /// utility function used in rebalancing of a balanced binary tree
@@ -113,7 +113,7 @@ impl<Item> BinTree<Item> {
             n.height = std::cmp::max(n.left().unwrap().height(),n.right().unwrap().height()) + 1;
             _ = std::mem::replace(r.left_mut().unwrap(), n);
             _ = std::mem::replace(self, r);
-            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+            self.update_height();
         }
     }
     /// utility function used in rebalancing of a balanced binary tree
@@ -121,7 +121,7 @@ impl<Item> BinTree<Item> {
         if !self.is_empty() {
             self.left_mut().unwrap().rotate_left();
             self.rotate_right();
-            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+            self.update_height();
         }
     }
     /// utility function used in rebalancing of a balanced binary tree
@@ -129,7 +129,7 @@ impl<Item> BinTree<Item> {
         if !self.is_empty() {
             self.right_mut().unwrap().rotate_right();
             self.rotate_left();
-            self.height = std::cmp::max(self.left().unwrap().height(),self.right().unwrap().height()) + 1;
+            self.update_height();
         }
     }
 
@@ -326,11 +326,13 @@ impl<Item> BinTree<Item> {
             None
         } else {
             let_node_ref_mut!(self => value, left, right);
-            match cmp(target_key, to_key(value)) {
+            let result = match cmp(target_key, to_key(value)) {
                 Some(std::cmp::Ordering::Less) => left.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
                 Some(std::cmp::Ordering::Greater) => right.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
                 _ => self.pop_sorted(),
-            }
+            };
+            self.update_height();
+            result
         }
     }
 
@@ -913,6 +915,28 @@ mod test {
 
         for _ in 0..t.len() {
             assert_eq!(t.pop_sorted().is_some(),true);
+            assert_eq!(t.recalculate_heights(),false);
+        }
+
+        assert_eq!(t.is_empty(),true);        
+    }
+    #[test]
+    fn remove_sorted_height_test() {
+        let s = "This is a very long string for my TEST!";
+        let mut t;
+
+        t = BinTree::new();
+        t.extend_sorted_unique(s.chars());
+        assert_eq!(t.len(),20);
+        assert_eq!(String::from_iter(t.to_vec().iter())," !ESTaefghilmnorstvy");
+        assert_eq!(t.height(),5);
+
+        assert_eq!(t.recalculate_heights(),false);
+        assert_eq!(t.remove_sorted(&'r'),Some('r'));
+        assert_eq!(t.recalculate_heights(),false);
+
+        for c in t.to_vec() {
+            assert_eq!(t.remove_sorted(&c),Some(c));
             assert_eq!(t.recalculate_heights(),false);
         }
 
