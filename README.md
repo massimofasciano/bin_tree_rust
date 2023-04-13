@@ -5,9 +5,9 @@ A small Rust project that illustrates iteration and other operations on binary t
 I used the following data structures to represent the binary tree:
 
 ```rust
-#[repr(transparent)]
 pub struct BinTree<Item> {
-    pub root: Option<Box<BinTreeNode<Item>>>
+    pub root: Option<Box<BinTreeNode<Item>>>,
+    pub height: isize, // this field is only updated when representing balanced trees
 }
 
 pub struct BinTreeNode<Item> {
@@ -21,19 +21,16 @@ Each node of the tree contains a value and two children (left and right tree).
 A binary tree is an optional boxed node. The Option takes care of representing the empty tree.
 The Box is necessary because the size of the tree is not known in advance and requires heap allocation.
 A leaf is a node with 2 empty children.
+The "height" field is used to keep the tree balanced when needed. Balancing is optional.
 
-Where possible, access methods hide the internal implementation of the tree. 
-Only the bin_tree module directly uses the internals. 
-The bulk of the code (in bin_tree_utils and bin_tree_iter) only uses access methods.
-The struct fields are public because in some situations, the borrow checker is too coarse
-and mutable references to parts of a struct are not possible with access methods
-(self is borrowed in full).
-By using 3 node access macro variants (let_node_ref, let_node_ref_mut and let_node_move), the code can
-split a node into the 3 base parts in a more flexible and fine-grained way without having direct
-knowledge of the internals of the node struct.
+Where possible, access methods and special destructuring macros hide the internal implementation of the tree from the utility methods. I relied on the macros when separate mutable references to the left and right subtrees were needed (this is impossible when passing self to an access method that returns a ref mut).
+
+The tree is designed to be balanced but methods that work on unbalanced trees are provided. It is preferable to wrap the BinTree
+inside a custom type when wanting to preserve order and balancing because direct mutable access can break order and balance.
+This is what I did with the BinTreeMap and BinTreeOrderedSet.
 
 ```rust
-use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree, BinTreeMap, BinTree};
+use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, BinTreeOrderedSet, BinTreeMap, BinTree};
 
 #[test]
 fn demo() {
@@ -113,17 +110,17 @@ fn demo() {
     // type for the values (like BinTreeMap does with insertion of BinTreeMapEntry).
     let mut t = BinTree::new();
     let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
-    t.push_sorted_unique_with_compare("hello there", cmp);
-    t.push_sorted_unique_with_compare("hello there!", cmp);
-    t.push_sorted_unique_with_compare("hello my name is Rusty", cmp);
+    t.push_sorted_unique_cmp("hello there", cmp);
+    t.push_sorted_unique_cmp("hello there!", cmp);
+    t.push_sorted_unique_cmp("hello my name is Rusty", cmp);
     // "hello world!" replaces "hello there!" because same length...
-    t.push_sorted_unique_with_compare("hello world!", cmp); 
-    t.push_sorted_unique_with_compare("hello", cmp);
+    assert_eq!(t.push_sorted_unique_cmp("hello world!", cmp),Some("hello there!")); 
+    assert_eq!(t.push_sorted_unique_cmp("hello", cmp),None);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
     for s in &t {
         assert_eq!(t.get_sorted_with_compare(s, cmp),Some(s));
     }
-    assert_eq!(t.remove_sorted_with_compare(&"hello world!", cmp),Some("hello world!"));
+    assert_eq!(t.remove_sorted_cmp(&"hello world!", cmp),Some("hello world!"));
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
     let s = t.get_sorted_mut_with_compare(&"hello", cmp).unwrap();
     assert_eq!(s,&"hello");
@@ -136,10 +133,10 @@ fn demo() {
 
     // binary tree ordered set
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
-    let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();
+    let mut t = v.into_iter().collect::<BinTreeOrderedSet<_>>();
     assert_eq!(t.to_string(),"[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]");
     assert_eq!(t.inner().to_string(),
-        "((((1 => (2)) <= 3 => (5)) <= 6 => ((7) <= 8 => (((9) <= 10) <= 11))) <= 18)");
+        "(((1 => (2)) <= 3 => (5)) <= 6 => (((7) <= 8 => (9)) <= 10 => (11 => (18))))");
     
     assert_eq!(t.contains(&2),true);
     assert_eq!(t.contains(&10),true);
@@ -148,7 +145,7 @@ fn demo() {
     assert_eq!(t.remove(&7),Some(7));
     assert_eq!(format!("{}",t),"[1, 2, 3, 5, 6, 8, 9, 10, 11, 18]");
     assert_eq!(t.to_tree_string(),
-        "((((1 => (2)) <= 3 => (5)) <= 6 => (8 => (((9) <= 10) <= 11))) <= 18)");
+        "(((1 => (2)) <= 3 => (5)) <= 6 => ((8 => (9)) <= 10 => (11 => (18))))");
 
     // binary tree map
     let mut t : BinTreeMap<char, usize> = BinTreeMap::new();

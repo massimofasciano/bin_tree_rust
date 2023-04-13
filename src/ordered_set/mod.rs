@@ -2,13 +2,13 @@ use crate::{BinTree, BinTreeIntoIter, BinTreeIter};
 
 /// a basic ordered set container shows how to encapsulate a type inside another
 #[derive(Debug,Clone)]
-pub struct OrderedSetBinTree<Item> where Item : PartialOrd {
+pub struct BinTreeOrderedSet<Item> where Item : PartialOrd {
     data: BinTree<Item>,
     len: usize,
 }
 
 /// default set is an empty tree
-impl<Item : PartialOrd> Default for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> Default for BinTreeOrderedSet<Item> {
     fn default() -> Self {
         Self {
             data: BinTree::default(),
@@ -17,7 +17,7 @@ impl<Item : PartialOrd> Default for OrderedSetBinTree<Item> {
     }
 }
 
-impl<Item : PartialOrd> OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> BinTreeOrderedSet<Item> {
     /// empty tree
     pub fn new() -> Self {
         Self::default()
@@ -62,7 +62,7 @@ impl<Item : PartialOrd> OrderedSetBinTree<Item> {
     }
 }
 
-impl<Item: PartialOrd> Extend<Item> for OrderedSetBinTree<Item> {
+impl<Item: PartialOrd> Extend<Item> for BinTreeOrderedSet<Item> {
     /// extend a set from an iterator
     fn extend<T: IntoIterator<Item = Item>>(&mut self, iter: T) {
         for elem in iter {
@@ -71,14 +71,14 @@ impl<Item: PartialOrd> Extend<Item> for OrderedSetBinTree<Item> {
     }
 }
 
-impl<Item : PartialOrd + std::fmt::Debug> std::fmt::Display for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd + std::fmt::Debug> std::fmt::Display for BinTreeOrderedSet<Item> {
     /// display a set as a vector
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f,"{:?}",self.data.iter().collect::<Vec<_>>())
     }
 }
 
-impl<Item : PartialOrd> FromIterator<Item> for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> FromIterator<Item> for BinTreeOrderedSet<Item> {
     /// create a set from an iterator
     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
         let mut s = Self::default();
@@ -87,7 +87,7 @@ impl<Item : PartialOrd> FromIterator<Item> for OrderedSetBinTree<Item> {
     }
 }
 
-impl<T : PartialOrd> IntoIterator for OrderedSetBinTree<T> {
+impl<T : PartialOrd> IntoIterator for BinTreeOrderedSet<T> {
     type IntoIter = BinTreeIntoIter<T>;
     type Item = T;
 
@@ -97,7 +97,7 @@ impl<T : PartialOrd> IntoIterator for OrderedSetBinTree<T> {
     }
 }
 
-impl<Item : PartialOrd> PartialEq for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> PartialEq for BinTreeOrderedSet<Item> {
     /// set equality
     fn eq(&self, other: &Self) -> bool {
         self.iter().all(|e| other.contains(e)) &&
@@ -105,21 +105,21 @@ impl<Item : PartialOrd> PartialEq for OrderedSetBinTree<Item> {
     }
 }
 
-impl<Item : PartialOrd> From<BinTree<Item>> for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> From<BinTree<Item>> for BinTreeOrderedSet<Item> {
     /// create set from binary tree
     fn from(value: BinTree<Item>) -> Self {
         Self::from_iter(value.into_iter())
     }
 }
 
-impl<Item : PartialOrd> From<Vec<Item>> for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> From<Vec<Item>> for BinTreeOrderedSet<Item> {
     /// create set from vector
     fn from(value: Vec<Item>) -> Self {
         Self::from_iter(value.into_iter())
     }
 }
 
-impl<Item : PartialOrd> Into<BinTree<Item>> for OrderedSetBinTree<Item> {
+impl<Item : PartialOrd> Into<BinTree<Item>> for BinTreeOrderedSet<Item> {
     /// transform set into wrapped binary tree
     fn into(self) -> BinTree<Item> {
         self.into_inner()

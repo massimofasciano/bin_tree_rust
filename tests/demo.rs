@@ -1,4 +1,4 @@
-use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, OrderedSetBinTree, BinTreeMap, BinTree};
+use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, BinTreeOrderedSet, BinTreeMap, BinTree};
 
 #[test]
 fn demo() {
@@ -101,7 +101,7 @@ fn demo() {
 
     // binary tree ordered set
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
-    let mut t = v.into_iter().collect::<OrderedSetBinTree<_>>();
+    let mut t = v.into_iter().collect::<BinTreeOrderedSet<_>>();
     assert_eq!(t.to_string(),"[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]");
     assert_eq!(t.inner().to_string(),
         "(((1 => (2)) <= 3 => (5)) <= 6 => (((7) <= 8 => (9)) <= 10 => (11 => (18))))");
