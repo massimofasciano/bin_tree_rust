@@ -93,26 +93,22 @@ impl<Item> BinTree<Item> {
     /// utility function used in rebalancing of a balanced binary tree
     pub fn rotate_right(&mut self) {
         if !self.is_empty() {
-            let mut l = std::mem::take(self.left_mut().unwrap());
-            let l_r = std::mem::take(l.right_mut().unwrap());
-            _ = std::mem::replace(self.left_mut().unwrap(), l_r);
-            let mut n = std::mem::take(self);
-            n.height = std::cmp::max(n.left().unwrap().height(),n.right().unwrap().height()) + 1;
-            _ = std::mem::replace(l.right_mut().unwrap(), n);
-            _ = std::mem::replace(self, l);
+            let mut left = std::mem::take(self.left_mut().unwrap());
+            *self.left_mut().unwrap() = std::mem::take(left.right_mut().unwrap());
+            self.update_height();
+            *left.right_mut().unwrap() = std::mem::take(self);
+            *self = left;
             self.update_height();
         }
     }
     /// utility function used in rebalancing of a balanced binary tree
     pub fn rotate_left(&mut self) {
         if !self.is_empty() {
-            let mut r = std::mem::take(self.right_mut().unwrap());
-            let r_l = std::mem::take(r.left_mut().unwrap());
-            _ = std::mem::replace(self.right_mut().unwrap(), r_l);
-            let mut n = std::mem::take(self);
-            n.height = std::cmp::max(n.left().unwrap().height(),n.right().unwrap().height()) + 1;
-            _ = std::mem::replace(r.left_mut().unwrap(), n);
-            _ = std::mem::replace(self, r);
+            let mut right = std::mem::take(self.right_mut().unwrap());
+            *self.right_mut().unwrap() = std::mem::take(right.left_mut().unwrap());
+            self.update_height();
+            *right.left_mut().unwrap() = std::mem::take(self);
+            *self = right;
             self.update_height();
         }
     }
