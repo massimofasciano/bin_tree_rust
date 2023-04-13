@@ -1,6 +1,7 @@
 use crate::{BinTree, let_node_ref_mut};
 
 impl<Item> BinTree<Item> {
+
     /// try to remove value from a tree
     /// heights are not adjusted
     pub fn remove(&mut self, target_value : &Item) -> Option<Item> where Item : PartialEq + Default {
@@ -19,25 +20,12 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+
     /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd + Default {
         self.remove_sorted_to_key_cmp(target_value, &|x|x, &Item::partial_cmp, true)
     }
-    /// try to remove with key from a sorted tree and preserve order
-    pub fn remove_sorted_with_key<FtoKey,Key>(&mut self, target_key : &Key, to_key: &FtoKey) -> Option<Item> where
-        Key : PartialOrd,
-        FtoKey : Fn(&Item) -> &Key,
-        Item : Default,
-    {
-        self.remove_sorted_to_key_cmp(target_key, to_key, &Key::partial_cmp, true)
-    }
-    /// try to remove with compare function from a sorted tree and preserve order
-    pub fn remove_sorted_cmp<F>(&mut self, target_value : &Item, cmp : &F) -> Option<Item> where
-        F : Fn(&Item, &Item) -> Option<std::cmp::Ordering>,
-        Item : Default,
-    {
-        self.remove_sorted_to_key_cmp(target_value, &|x|x, cmp, true)
-    }
+
     /// try to remove sorted tree and preserve order
     /// uses key and compare functions
     /// optional rebalancing
@@ -62,6 +50,7 @@ impl<Item> BinTree<Item> {
             result
         }
     }
+
 }
 
 /// This macro should only used in the specific context of the pop functions in this crate
@@ -78,6 +67,7 @@ macro_rules! take_value_replace_tree {
 }
 
 impl<Item: Default> BinTree<Item> {
+
     /// pop the top item from the tree
     /// heights are not adjusted
     pub fn pop(&mut self) -> Option<Item> {
@@ -100,6 +90,7 @@ impl<Item: Default> BinTree<Item> {
 
         }
     }
+
     /// pop the top value from a sorted tree and preserves order
     /// heights are adjusted
     pub fn pop_sorted(&mut self) -> Option<Item> {
@@ -141,6 +132,7 @@ impl<Item: Default> BinTree<Item> {
             }
         }
     }
+
     /// pop from the right of tree
     pub fn pop_right(&mut self) -> Option<Item> {
         if self.is_empty() {
@@ -156,4 +148,5 @@ impl<Item: Default> BinTree<Item> {
             }
         }
     }
+
 }
