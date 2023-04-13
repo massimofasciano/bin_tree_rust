@@ -2,6 +2,7 @@ use bin_tree::{FormattedBinTree, FormattedBinTreeType, tree, leaf, BinTreeOrdere
 
 #[test]
 fn demo() {
+    // an unsorted tree
     let mut t = 
         tree(1,
             tree(2,
@@ -73,13 +74,15 @@ fn demo() {
     }
     assert_eq!(t.is_empty(),true);
 
-    // binary tree ordered set
+    // binary tree ordered set (always balanced as well as ordered)
     let v = vec![18,6,3,8,5,11,1,7,3,5,2,8,10,3,6,9,3,2];
     let mut t = v.into_iter().collect::<BinTreeOrderedSet<_>>();
     assert_eq!(t.to_string(),"[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 18]");
     assert_eq!(t.inner().to_string(),
         "(((1 => (2)) <= 3 => (5)) <= 6 => (((7) <= 8 => (9)) <= 10 => (11 => (18))))");
-    
+    assert_eq!(t.len(),11);
+    assert_eq!(t.inner().height(),4);
+        
     assert_eq!(t.contains(&2),true);
     assert_eq!(t.contains(&10),true);
     assert_eq!(t.contains(&4),false);
@@ -88,12 +91,14 @@ fn demo() {
     assert_eq!(format!("{}",t),"[1, 2, 3, 5, 6, 8, 9, 10, 11, 18]");
     assert_eq!(t.to_tree_string(),
         "(((1 => (2)) <= 3 => (5)) <= 6 => ((8 => (9)) <= 10 => (11 => (18))))");
+    assert_eq!(t.len(),10);
+    assert_eq!(t.inner().height(),4);
 
-    // binary tree map
+    // binary tree map (always balanced as well as ordered by key)
     let mut t : BinTreeMap<char, usize> = BinTreeMap::new();
     t.insert('a', 782);
-    t.insert('b', 1782);
     t.insert('c', 500);
+    t.insert('b', 1782);
     assert_eq!(t.to_string(),"[('a', 782), ('b', 1782), ('c', 500)]");
     assert_eq!(t.contains_key(&'b'),true);
     assert_eq!(t.contains_key(&'z'),false);
