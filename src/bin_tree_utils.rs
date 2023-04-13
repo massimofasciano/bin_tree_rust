@@ -139,24 +139,9 @@ impl<Item> BinTree<Item> {
     }
     /// push onto a sorted or empty tree and keeps order property (rebalance)
     pub fn push_sorted(&mut self, new_item : Item) where Item : PartialOrd {
-        self.push_sorted_maybe_rebalance(new_item, true);
+        // self.push_sorted_maybe_rebalance(new_item, true);
+        self.push_sorted_to_key_cmp(new_item, &|x|x, &Item::partial_cmp, true ,false);
     }
-    /// push onto a sorted or empty tree and keeps order property (optional rebalancing)
-    pub fn push_sorted_maybe_rebalance(&mut self, new_item : Item, rebalance : bool) where Item : PartialOrd {
-        if self.is_empty() {
-            *self = Self::new_leaf(new_item)
-        } else {
-            let_node_ref_mut!(self => item, left, right);
-            if new_item < *item {
-                left.push_sorted_maybe_rebalance(new_item,rebalance);
-            } else {
-                right.push_sorted_maybe_rebalance(new_item,rebalance);
-            }
-            self.height = std::cmp::max(left.height, right.height) + 1;
-            if rebalance { self.rebalance(); }
-        }
-    }
-
     /// extend a sorted or empty tree and keeps order property (rebalance)
     pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
         for elem in iter {
@@ -164,6 +149,39 @@ impl<Item> BinTree<Item> {
         }
     }
 
+    /// push onto a sorted or empty tree and keeps both properties
+    /// unicity (no duplicates) optional
+    /// use a function to compare keys and a function to get key from item
+    /// returns the replaced item when there is a duplicate (based on compare function)
+    /// optional rebalancing
+    pub fn push_sorted_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, new_item : Item, 
+        to_key: &FtoKey, cmp : &Fcmp, rebalance : bool, unique : bool) -> Option<Item> where 
+        Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
+        FtoKey : Fn(&Item) -> &Key,
+    {
+        if self.is_empty() {
+            *self = Self::new_leaf(new_item);
+            None
+        } else {
+            let mut height_adj = true;
+            let_node_ref_mut!(self => item, left, right);
+            let result = match cmp(to_key(&new_item), to_key(item)) {
+                Some(std::cmp::Ordering::Less) => left.push_sorted_to_key_cmp(new_item,to_key,cmp,rebalance,unique),
+                Some(std::cmp::Ordering::Greater) => right.push_sorted_to_key_cmp(new_item,to_key,cmp,rebalance,unique),
+                _ => if unique {
+                        height_adj = false;
+                        Some(std::mem::replace(item, new_item))
+                    } else {
+                        right.push_sorted_to_key_cmp(new_item,to_key,cmp,rebalance,unique)
+                    }
+            };
+            if height_adj {
+                self.height = std::cmp::max(left.height, right.height) + 1;
+                if rebalance { self.rebalance(); }
+            }
+            result
+        }
+    }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties
     /// use a function to compare keys and a function to get key from item
     /// returns the replaced item when there is a duplicate (based on compare function)
@@ -173,20 +191,7 @@ impl<Item> BinTree<Item> {
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
         FtoKey : Fn(&Item) -> &Key,
     {
-        if self.is_empty() {
-            *self = Self::new_leaf(new_item);
-            None
-        } else {
-            let_node_ref_mut!(self => item, left, right);
-            let result = match cmp(to_key(&new_item), to_key(item)) {
-                Some(std::cmp::Ordering::Less) => left.push_sorted_unique_to_key_cmp(new_item,to_key,cmp,rebalance),
-                Some(std::cmp::Ordering::Greater) => right.push_sorted_unique_to_key_cmp(new_item,to_key,cmp,rebalance),
-                _ => Some(std::mem::replace(item, new_item)),
-            };
-            self.height = std::cmp::max(left.height, right.height) + 1;
-            if rebalance { self.rebalance(); }
-            result
-        }
+        self.push_sorted_to_key_cmp(new_item, to_key, cmp, rebalance, true)
     }
     /// push onto a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     /// returns bool indicating if a new item was added
@@ -252,6 +257,9 @@ impl<Item> BinTree<Item> {
             self.push_left(elem);
         }
     }
+
+
+
     /// returns the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
     fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> {
@@ -337,6 +345,9 @@ impl<Item> BinTree<Item> {
             }
         }
     }
+
+
+
     /// find a value in a sorted tree
     pub fn contains_sorted(&self, target_value : &Item) -> bool where Item : PartialOrd {
         if self.is_empty() {
