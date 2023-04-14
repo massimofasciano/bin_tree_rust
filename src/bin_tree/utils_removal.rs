@@ -23,7 +23,7 @@ impl<Item> BinTree<Item> {
 
     /// try to remove value from a sorted tree and preserve order
     pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd + Default {
-        self.remove_sorted_to_key_cmp(target_value, &|x|x, &Item::partial_cmp, true)
+        self.remove_sorted_to_key_cmp(target_value, |x|x, Item::partial_cmp, true)
     }
 
     /// try to remove sorted tree and preserve order
@@ -31,7 +31,7 @@ impl<Item> BinTree<Item> {
     /// optional rebalancing
     /// heights are preserved
     pub fn remove_sorted_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, target_key : &Key, 
-        to_key: &FtoKey, cmp : &Fcmp, rebalance : bool) -> Option<Item> where 
+        to_key: FtoKey, cmp : Fcmp, rebalance : bool) -> Option<Item> where 
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
         FtoKey : Fn(&Item) -> &Key,
         Item : Default,

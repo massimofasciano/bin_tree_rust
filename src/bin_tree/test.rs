@@ -322,7 +322,7 @@ fn push_pop_test() {
 #[test]
 fn ordered_compare_test() {
     let mut t = BinTree::new();
-    let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
+    let cmp = |s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
     macro_rules! insert_cmp {
         ($t:ident, $s:expr) => {
             $t.insert_to_key_cmp($s,|i|i,cmp,true,true)    
@@ -336,11 +336,11 @@ fn ordered_compare_test() {
     assert_eq!(insert_cmp!(t,"hello"),None);
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello world!", "hello my name is Rusty"]);
     for s in &t {
-        assert_eq!(t.get_sorted_to_key_cmp(s, &|x|x, cmp),Some(s));
+        assert_eq!(t.get_sorted_to_key_cmp(s, |x|x, cmp),Some(s));
     }
-    assert_eq!(t.remove_sorted_to_key_cmp(&"hello world!", &|x|x, cmp, true),Some("hello world!"));
+    assert_eq!(t.remove_sorted_to_key_cmp(&"hello world!", |x|x, cmp, true),Some("hello world!"));
     assert_eq!(t.to_vec(),vec!["hello", "hello there", "hello my name is Rusty"]);
-    let s = t.get_mut_sorted_to_key_cmp(&"hello", &|x|x, cmp).unwrap();
+    let s = t.get_mut_sorted_to_key_cmp(&"hello", |x|x, cmp).unwrap();
     assert_eq!(s,&"hello");
     *s = "do you like the borrow checker?";
     // The tree is not sorted anymore because we used a mut reference to change a value

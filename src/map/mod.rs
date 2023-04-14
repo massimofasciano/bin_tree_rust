@@ -59,7 +59,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     /// get (key,value) by key from the map
     pub fn get_key_value(&self, target_key: &Key) -> Option<(&Key, &Value)> {
         if let Some(kv) = self.data.get_sorted_to_key_cmp(target_key, 
-                &BinTreeMapEntry::key, &Key::partial_cmp) {
+                BinTreeMapEntry::key, Key::partial_cmp) {
             Some((&kv.key,&kv.value))
         } else {
             None
@@ -68,7 +68,7 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     /// get mut value by key from the map
     pub fn get_mut(&mut self, key: &Key) -> Option<&mut Value> {
         if let Some(kv) = self.data.get_mut_sorted_to_key_cmp(key, 
-                &&BinTreeMapEntry::key, &Key::partial_cmp) {
+                BinTreeMapEntry::key, Key::partial_cmp) {
             Some(&mut kv.value)
         } else {
             None
@@ -96,7 +96,7 @@ impl<Key : PartialOrd + Default, Value: Default> BinTreeMap<Key,Value> {
     pub fn remove(&mut self, target_key: &Key) -> Option<Value> {
         // if let Some(kv) = self.data.remove_sorted_with_key(key, &BinTreeMapEntry::key) {
         if let Some(kv) = self.data.remove_sorted_to_key_cmp(target_key, 
-                &BinTreeMapEntry::key, &Key::partial_cmp, true) {
+                BinTreeMapEntry::key, Key::partial_cmp, true) {
             self.len -= 1;
             Some(kv.value)
         } else {
