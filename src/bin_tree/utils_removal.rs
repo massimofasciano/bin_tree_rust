@@ -68,62 +68,33 @@ impl<Item> BinTree<Item> {
                 let right = std::mem::take(self.right_mut().unwrap());
                 Some(std::mem::replace(self, right))
             } else {
-                let right_min_tree = self.right_mut().unwrap().min_tree_mut()
-                    .expect("take_min_tree should always return some tree");
-                let mut new_self = right_min_tree.pop_tree_sorted(rebalance).unwrap();
+                let mut new_self = self.right_mut().unwrap().detach_left_min_tree_sorted(rebalance).unwrap();
                 std::mem::swap(self.left_mut().unwrap(), new_self.left_mut().unwrap());
                 std::mem::swap(self.right_mut().unwrap(), new_self.right_mut().unwrap());
                 std::mem::swap(self, &mut new_self);
-                // recalc only on the left path of the right subtree and rebalance on the way up
-                self.right_mut().unwrap().recalculate_heights_rec(true,false,rebalance);
                 self.update_height();
                 Some(new_self)
             }
         }
     }
 
-    /// pop the top node from a sorted tree and preserves order
-    /// heights are adjusted
-    /// rebalancing is optional
-    pub fn new_pop_tree_sorted(&mut self, rebalance : bool) -> Option<BinTree<Item>> {
-        if self.is_empty() {
-            None
-        } else {
-            if self.left().unwrap().is_empty() && self.right().unwrap().is_empty() {
-                Some(std::mem::take(self))
-            } else if self.right().unwrap().is_empty() {
-                let left = std::mem::take(self.left_mut().unwrap());
-                Some(std::mem::replace(self, left))
-            } else if self.left().unwrap().is_empty() {
-                let right = std::mem::take(self.right_mut().unwrap());
-                Some(std::mem::replace(self, right))
-            } else {
-                let right_min_tree = self.right_mut().unwrap().min_tree_mut()
-                    .expect("take_min_tree should always return some tree");
-                let mut new_self = right_min_tree.new_pop_tree_sorted(rebalance).unwrap();
-                std::mem::swap(self.left_mut().unwrap(), new_self.left_mut().unwrap());
-                std::mem::swap(self.right_mut().unwrap(), new_self.right_mut().unwrap());
-                std::mem::swap(self, &mut new_self);
-                // recalc only on the left path of the right subtree and rebalance on the way up
-                self.right_mut().unwrap().recalculate_heights_rec(true,false,rebalance);
-                self.update_height();
-                Some(new_self)
-            }
-        }
-    }
-
-    /// returns the mutable tree node containing the minimum value item
+    /// detaches the mutable tree node containing the minimum value item
     /// assumes that the tree is sorted
-    fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> {
+    /// the tree is adjusted on the way up, including heights and optional rebalancing
+    pub fn detach_left_min_tree_sorted(&mut self, rebalance : bool) -> Option<BinTree<Item>> {
         if self.is_leaf() {
-            Some(self)
+            Some(std::mem::take(self))
         } else if self.is_branch() {
             if self.left().unwrap().is_empty() {
                 // no left path
-                Some(self)
+                let right = std::mem::take(self.right_mut().unwrap());
+                Some(std::mem::replace(self, right))
             } else {
                 // min from left path
-                self.left_mut().unwrap().min_tree_mut()
+                let result = self.left_mut().unwrap().detach_left_min_tree_sorted(rebalance);
+                self.update_height();
+                if rebalance { self.rebalance() };
+                result
             }
         } else {
             None
@@ -152,7 +123,6 @@ impl<Item> BinTree<Item> {
                     new_self
                 },
             })
-
         }
     }
 
