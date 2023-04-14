@@ -133,24 +133,6 @@ impl<Item> BinTree<Item> {
         }
     }
 
-    /// returns the mutable tree node containing the minimum value item
-    /// assumes that the tree is sorted
-    pub(crate) fn min_tree_mut(&mut self) -> Option<&mut BinTree<Item>> {
-        if self.is_leaf() {
-            Some(self)
-        } else if self.is_branch() {
-            if self.left().unwrap().is_empty() {
-                // no left path
-                Some(self)
-            } else {
-                // min from left path
-                self.left_mut().unwrap().min_tree_mut()
-
-            }
-        } else {
-            None
-        }
-    }
 }
 
 impl<Item: PartialOrd> Extend<Item> for BinTree<Item> {
