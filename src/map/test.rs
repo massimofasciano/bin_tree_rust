@@ -39,7 +39,7 @@ fn check_custom_kv_type() {
     #[derive(PartialEq, PartialOrd, Debug, Default)]
     struct KeyType(i32);
 
-    #[derive(Debug, Default, PartialEq)]
+    #[derive(Debug, PartialEq)]
     struct ValueType(i64);
 
     let mut t : BinTreeMap<KeyType, ValueType> = BinTreeMap::new();

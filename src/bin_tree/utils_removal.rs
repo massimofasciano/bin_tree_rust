@@ -1,23 +1,23 @@
 use crate::{BinTree, let_node_ref_mut};
 
-/// This macro should only used in the specific context of the pop functions in this crate
-/// and is not meant as a general purpose tool. It is used to avoid code repetition.
-macro_rules! take_value_replace_tree {
-    ($dest_tree:expr , $value:expr , $source_tree:expr) => {
-        {
-            let value_taken = std::mem::take($value);
-            let source_tree_taken = std::mem::take($source_tree);
-            *$dest_tree = source_tree_taken;
-            value_taken
-        }
-    };
-}
+// /// This macro should only used in the specific context of the pop functions in this crate
+// /// and is not meant as a general purpose tool. It is used to avoid code repetition.
+// macro_rules! take_value_replace_tree {
+//     ($dest_tree:expr , $value:expr , $source_tree:expr) => {
+//         {
+//             let value_taken = std::mem::take($value);
+//             let source_tree_taken = std::mem::take($source_tree);
+//             *$dest_tree = source_tree_taken;
+//             value_taken
+//         }
+//     };
+// }
 
 impl<Item> BinTree<Item> {
 
     /// try to remove value from a tree
     /// heights are not adjusted
-    pub fn remove(&mut self, target_value : &Item) -> Option<Item> where Item : PartialEq + Default {
+    pub fn remove(&mut self, target_value : &Item) -> Option<Item> where Item : PartialEq {
         if self.is_empty() {
             None
         } else {
@@ -35,7 +35,7 @@ impl<Item> BinTree<Item> {
     }
 
     /// try to remove value from a sorted tree and preserve order
-    pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd + Default {
+    pub fn remove_sorted(&mut self, target_value : &Item) -> Option<Item> where Item : PartialOrd {
         self.remove_sorted_to_key_cmp(target_value, |x|x, Item::partial_cmp, true)
     }
 
@@ -47,7 +47,6 @@ impl<Item> BinTree<Item> {
         to_key: FtoKey, cmp : Fcmp, rebalance : bool) -> Option<Item> where 
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
         FtoKey : Fn(&Item) -> &Key,
-        Item : Default,
     {
         if self.is_empty() {
             None

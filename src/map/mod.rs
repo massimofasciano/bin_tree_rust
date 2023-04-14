@@ -74,6 +74,17 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
             None
         }
     }
+    /// remove by key from the map and return removed value
+    pub fn remove(&mut self, target_key: &Key) -> Option<Value> {
+        // if let Some(kv) = self.data.remove_sorted_with_key(key, &BinTreeMapEntry::key) {
+        if let Some(kv) = self.data.remove_sorted_to_key_cmp(target_key, 
+                BinTreeMapEntry::key, Key::partial_cmp, true) {
+            self.len -= 1;
+            Some(kv.value)
+        } else {
+            None
+        }
+    }
     /// check if map contains key
     pub fn contains_key(&self, key: &Key) -> bool {
         self.get(key).is_some()
@@ -88,20 +99,6 @@ impl<Key : PartialOrd, Value> BinTreeMap<Key,Value> {
     }
     pub fn to_tree_string(&self) -> String where Key: std::fmt::Debug, Value : std::fmt::Debug {
         format!("{}",self.inner())
-    }
-}
-
-impl<Key : PartialOrd + Default, Value: Default> BinTreeMap<Key,Value> {
-    /// remove by key from the map and return removed value
-    pub fn remove(&mut self, target_key: &Key) -> Option<Value> {
-        // if let Some(kv) = self.data.remove_sorted_with_key(key, &BinTreeMapEntry::key) {
-        if let Some(kv) = self.data.remove_sorted_to_key_cmp(target_key, 
-                BinTreeMapEntry::key, Key::partial_cmp, true) {
-            self.len -= 1;
-            Some(kv.value)
-        } else {
-            None
-        }
     }
 }
 
