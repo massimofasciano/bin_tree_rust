@@ -36,7 +36,7 @@ fn test_map() {
 
 #[test]
 fn check_custom_kv_type() {
-    #[derive(PartialEq, PartialOrd, Debug, Default)]
+    #[derive(PartialEq, PartialOrd, Debug)]
     struct KeyType(i32);
 
     #[derive(Debug, PartialEq)]
