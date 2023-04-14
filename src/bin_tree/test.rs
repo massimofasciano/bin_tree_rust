@@ -325,7 +325,7 @@ fn ordered_compare_test() {
     let cmp = &|s1: &&str,s2: &&str| s1.len().partial_cmp(&s2.len());
     macro_rules! insert_cmp {
         ($t:ident, $s:expr) => {
-            $t.insert_to_key_cmp($s,&|i|i,cmp,true,true)    
+            $t.insert_to_key_cmp($s,|i|i,cmp,true,true)    
         };
     }
     insert_cmp!(t,"hello there");
@@ -413,7 +413,7 @@ fn test_rebalance_off_on() {
 
     t = BinTree::new();
     for c in s.chars() {
-        t.insert_to_key_cmp(c,&|c|c,&char::partial_cmp,false, true);
+        t.insert_to_key_cmp(c,|c|c,char::partial_cmp,false, true);
     }
     assert_eq!(t.height(),9);
     assert_eq!(t.to_string(),
@@ -427,7 +427,7 @@ fn test_rebalance_off_on() {
 
     t = BinTree::new();
     for c in s.chars() {
-        t.insert_to_key_cmp(c,&|c|c,&char::partial_cmp,true, true);
+        t.insert_to_key_cmp(c,|c|c,char::partial_cmp,true, true);
     }
     assert_eq!(t.height(),5);
     assert_eq!(t.to_string(),

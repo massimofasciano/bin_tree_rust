@@ -5,7 +5,7 @@ impl<Item> BinTree<Item> {
     /// insert into a sorted or empty tree and keeps order property (rebalance)
     pub fn insert(&mut self, new_item : Item) where Item : PartialOrd {
         // self.push_sorted_maybe_rebalance(new_item, true);
-        self.insert_to_key_cmp(new_item, &|x|x, &Item::partial_cmp, true ,false);
+        self.insert_to_key_cmp(new_item, |x|x, Item::partial_cmp, true ,false);
     }
     /// extend a sorted or empty tree and keeps order property (rebalance)
     pub fn extend_sorted<T: IntoIterator<Item = Item>>(&mut self, iter: T) where Item : PartialOrd {
@@ -17,7 +17,7 @@ impl<Item> BinTree<Item> {
     /// insert into a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     /// returns bool indicating if a new item was added
     pub fn insert_unique(&mut self, new_item : Item) -> bool where Item : PartialOrd {
-        self.insert_to_key_cmp(new_item,&|i|i,&Item::partial_cmp,true, true).is_none()
+        self.insert_to_key_cmp(new_item,|i|i,Item::partial_cmp,true, true).is_none()
     }
     /// extend a sorted or empty tree with no duplicates and keeps both properties (rebalance)
     pub fn extend_sorted_unique<T: IntoIterator<Item = Item>>(&mut self, iter: T) -> usize where Item : PartialOrd {
@@ -36,7 +36,7 @@ impl<Item> BinTree<Item> {
     /// returns the replaced item when there is a duplicate (based on compare function)
     /// optional rebalancing
     pub fn insert_to_key_cmp<FtoKey,Fcmp,Key>(&mut self, new_item : Item, 
-        to_key: &FtoKey, cmp : &Fcmp, rebalance : bool, unique : bool) -> Option<Item> where 
+        to_key: FtoKey, cmp : Fcmp, rebalance : bool, unique : bool) -> Option<Item> where 
         Fcmp : Fn(&Key, &Key) -> Option<std::cmp::Ordering>,
         FtoKey : Fn(&Item) -> &Key,
     {
