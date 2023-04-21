@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref};
+use crate::BinTree;
 
 impl<Item> Default for BinTree<Item> {
     /// default is an empty tree
@@ -22,7 +22,7 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             write!(f,"()")
         } else {
-            let_node_ref!(self => value, left, right);
+            let (value,left,right) = self.node().expect("tree should not be empty");
             write!(f,"(")?;
             if !left.is_empty() {
                 left.write_line(f)?;
@@ -48,7 +48,7 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             write!(f,"{}{}\n",tab.repeat(indent),"@")
         } else {
-            let_node_ref!(self => value, left, right);
+            let (value,left,right) = self.node().expect("tree should not be empty");
             right.pretty_write_indent(f, tab, indent+1)?;
             write!(f,"{}{:?}\n",tab.repeat(indent),value)?;
             left.pretty_write_indent(f, tab, indent+1)

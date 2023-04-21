@@ -1,5 +1,3 @@
-// use crate::let_node_ref_mut;
-
 /// various tools for the binary tree
 pub mod utils;
 pub use self::utils::*;
@@ -108,6 +106,26 @@ impl<Item> BinTree<Item> {
     /// tests if tree is empty
     pub fn is_empty(&self) -> bool {
         self.root.is_none()
+    }
+    /// splits a node into value, left and right (by ref)
+    pub fn node(&self) -> Option<(&Item, &BinTree<Item>, &BinTree<Item>)> {
+        if self.is_empty() {
+            None
+        } else {
+            match self.root.as_deref().expect("not empty") {
+                BinTreeNode { value, left, right } => Some((value,left,right)),
+            }
+        }
+    }
+    /// splits a node into value, left and right (by move)
+    pub fn into_node(self) -> Option<(Item, BinTree<Item>, BinTree<Item>)> {
+        if self.is_empty() {
+            None
+        } else {
+            match *self.root.expect("not empty") {
+                BinTreeNode { value, left, right } => Some((value,left,right)),
+            }
+        }
     }
     /// returns a ref to the value at the top of the tree
     pub fn value(&self) -> Option<&Item> {
@@ -240,7 +258,6 @@ impl<Item> BinTree<Item> {
             self.height = 0;
         } else {
             let (_,left,right) = self.node_mut().expect("tree should not be empty");
-            // let_node_ref_mut!(self => _value, left, right);
             let mut height_left = left.height();
             let mut height_right = right.height();
             let mut changed_left = false;

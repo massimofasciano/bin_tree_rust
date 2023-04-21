@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref};
+use crate::BinTree;
 
 impl<Item> BinTree<Item> {
 
@@ -11,7 +11,7 @@ impl<Item> BinTree<Item> {
             if self.is_empty() {
                 None
             } else {
-                let_node_ref!(self => value, left, right);
+                let (value,left,right) = self.node().expect("tree should not be empty");
                 match cmp(target_key, to_key(value)) {
                     Some(std::cmp::Ordering::Less) => left.get_sorted_to_key_cmp(target_key,to_key,cmp),
                     Some(std::cmp::Ordering::Greater) => right.get_sorted_to_key_cmp(target_key,to_key,cmp),
@@ -30,7 +30,6 @@ impl<Item> BinTree<Item> {
                 None
             } else {
                 let (value,left,right) = self.node_mut().expect("tree should not be empty");
-                // let_node_ref_mut!(self => value, left, right);
                 match cmp(target_key, to_key(value)) {
                     Some(std::cmp::Ordering::Less) => left.get_mut_sorted_to_key_cmp(target_key,to_key,cmp),
                     Some(std::cmp::Ordering::Greater) => right.get_mut_sorted_to_key_cmp(target_key,to_key,cmp),
@@ -77,7 +76,6 @@ impl<Item> BinTree<Item> {
                 None
             } else {
                 let (value,left,right) = self.node_mut().expect("tree should not be empty");
-                // let_node_ref_mut!(self => value, left, right);
                 if target_value == value {
                     Some(value)
                 } else if let Some(left_get) = left.get_mut(target_value) {
@@ -96,7 +94,6 @@ impl<Item> BinTree<Item> {
                 Some(self)
             } else {
                 let (_,left,right) = self.node_mut().expect("tree should not be empty");
-                // let_node_ref_mut!(self => _value, left, right);
                 let mut tree = left.get_tree_mut(target_value);
                 if tree.is_none() {
                     tree = right.get_tree_mut(target_value);
@@ -115,7 +112,7 @@ impl<Item> BinTree<Item> {
             if self.is_empty() {
                 false
             } else {
-                let_node_ref!(self => value, left, right);
+                let (value,left,right) = self.node().expect("tree should not be empty");
                 target_value == value || 
                 left.contains(target_value) || 
                 right.contains(target_value)

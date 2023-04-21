@@ -1,6 +1,6 @@
 use std::{collections::VecDeque};
 
-use crate::{BinTree, let_node_ref, let_node_move};
+use crate::BinTree;
 
 /// tree traversal methods: depth-first (3 orders), breadth-first
 enum BinTreeTraversal {
@@ -85,7 +85,7 @@ impl<T> Iterator for BinTreeIntoIter<T> {
                 if tree.is_empty() {
                     self.next()
                 } else {
-                    let_node_move!(tree => value, left, right);
+                    let (value,left,right) = tree.into_node().expect("tree should not be empty");
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));
@@ -191,7 +191,7 @@ impl<'a,T> Iterator for BinTreeIter<'a,T> {
                 if tree.is_empty() {
                     self.next()
                 } else {
-                    let_node_ref!(tree => value, left, right);
+                    let (value,left,right) = tree.node().expect("tree should not be empty");
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));
@@ -298,7 +298,6 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
                     self.next()
                 } else {
                     let (value,left,right) = tree.node_mut().expect("tree should not be empty");
-                    // let_node_ref_mut!(tree => value, left, right);
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));

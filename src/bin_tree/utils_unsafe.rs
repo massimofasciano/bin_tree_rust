@@ -21,6 +21,7 @@ impl<Item: PartialEq> BinTree<Item> {
 }
 
 impl<Item> BinTree<Item> {
+    /// splits a node into value, left and right (by ref mut)
     pub fn node_mut(&mut self) -> Option<(&mut Item, &mut BinTree<Item>, &mut BinTree<Item>)> {
         if self.is_empty() {
             None
