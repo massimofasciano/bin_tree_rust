@@ -1,7 +1,7 @@
 use bin_tree::{tree, leaf};
 
 #[test]
-fn test_macros() {
+fn split_node_test() {
     let mut bt = tree(4,leaf(1),tree(7,leaf(6),()));
     assert_eq!(bt.to_string(),"((1) <= 4 => ((6) <= 7))");
 
