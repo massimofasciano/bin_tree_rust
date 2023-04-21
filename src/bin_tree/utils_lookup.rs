@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref_mut, let_node_ref};
+use crate::{BinTree, let_node_ref};
 
 impl<Item> BinTree<Item> {
 
@@ -29,7 +29,8 @@ impl<Item> BinTree<Item> {
             if self.is_empty() {
                 None
             } else {
-                let_node_ref_mut!(self => value, left, right);
+                let (value,left,right) = self.node_mut().expect("tree should not be empty");
+                // let_node_ref_mut!(self => value, left, right);
                 match cmp(target_key, to_key(value)) {
                     Some(std::cmp::Ordering::Less) => left.get_mut_sorted_to_key_cmp(target_key,to_key,cmp),
                     Some(std::cmp::Ordering::Greater) => right.get_mut_sorted_to_key_cmp(target_key,to_key,cmp),
@@ -75,7 +76,8 @@ impl<Item> BinTree<Item> {
             if self.is_empty() {
                 None
             } else {
-                let_node_ref_mut!(self => value, left, right);
+                let (value,left,right) = self.node_mut().expect("tree should not be empty");
+                // let_node_ref_mut!(self => value, left, right);
                 if target_value == value {
                     Some(value)
                 } else if let Some(left_get) = left.get_mut(target_value) {
@@ -93,7 +95,8 @@ impl<Item> BinTree<Item> {
             } else if target_value == self.value().unwrap() {
                 Some(self)
             } else {
-                let_node_ref_mut!(self => _value, left, right);
+                let (_,left,right) = self.node_mut().expect("tree should not be empty");
+                // let_node_ref_mut!(self => _value, left, right);
                 let mut tree = left.get_tree_mut(target_value);
                 if tree.is_none() {
                     tree = right.get_tree_mut(target_value);

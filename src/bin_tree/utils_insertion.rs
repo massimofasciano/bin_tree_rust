@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref_mut};
+use crate::BinTree;
 
 impl<Item> BinTree<Item> {
 
@@ -45,7 +45,8 @@ impl<Item> BinTree<Item> {
             None
         } else {
             let mut height_adj = true;
-            let_node_ref_mut!(self => item, left, right);
+            // let_node_ref_mut!(self => item, left, right);
+            let (item,left,right) = self.node_mut().expect("tree should not be empty");
             let result = match cmp(to_key(&new_item), to_key(item)) {
                 Some(std::cmp::Ordering::Less) => left.insert_to_key_cmp(new_item,to_key,cmp,rebalance,unique),
                 Some(std::cmp::Ordering::Greater) => right.insert_to_key_cmp(new_item,to_key,cmp,rebalance,unique),

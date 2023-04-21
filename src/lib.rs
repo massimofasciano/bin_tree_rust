@@ -12,13 +12,20 @@ pub use crate::ordered_set::*;
 pub mod map;
 pub use crate::map::*;
 
-#[macro_export]
-/// split a non-empty tree into the 3 components (value, left, right): &mut version
-macro_rules! let_node_ref_mut {
-    ($tree:expr => $value:ident , $left:ident, $right:ident) => {
-        let crate::BinTreeNode{value:$value,left:$left,right:$right} = $tree.root.as_deref_mut().expect("tree should not be empty");
-    };
-}
+// #[macro_export]
+// /// split a non-empty tree into the 3 components (value, left, right): &mut version
+// macro_rules! let_node_ref_mut {
+//     ($tree:expr => $value:ident , $left:ident, $right:ident) => {
+//         let crate::BinTreeNode{value:$value,left:$left,right:$right} = $tree.root.as_deref_mut().expect("tree should not be empty");
+//     };
+// }
+// #[macro_export]
+// /// split a non-empty tree into the 3 components (value, left, right): &mut version
+// macro_rules! let_node_ref_mut {
+//     ($tree:expr => $value:ident , $left:ident, $right:ident) => {
+//         let ($value,$left,$right) = $tree.node_mut().expect("tree should not be empty");
+//     };
+// }
 
 #[macro_export]
 /// split a non-empty tree into the 3 components (value, left, right): & version
@@ -60,6 +67,6 @@ impl std::error::Error for BinTreeError {
 pub mod macros {
     pub use let_node_move;
     pub use let_node_ref;
-    pub use let_node_ref_mut;
+    // pub use let_node_ref_mut;
     pub use crate::BinTreeNode;
 }

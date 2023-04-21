@@ -20,3 +20,21 @@ impl<Item: PartialEq> BinTree<Item> {
     }
 }
 
+impl<Item> BinTree<Item> {
+    pub fn node_mut(&mut self) -> Option<(&mut Item, &mut BinTree<Item>, &mut BinTree<Item>)> {
+        if self.is_empty() {
+            None
+        } else {
+            let value_mut: &mut Item;
+            let left_mut: &mut BinTree<Item>;
+            let right_mut: &mut BinTree<Item>;
+            unsafe {
+                value_mut = &mut *(self.value_mut().expect("not empty") as *mut _);
+                left_mut = &mut *(self.left_mut().expect("not empty") as *mut _);
+                right_mut = &mut *(self.right_mut().expect("not empty") as *mut _);
+            }
+            Some((value_mut,left_mut,right_mut))
+        }
+    }
+}
+

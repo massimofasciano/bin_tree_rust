@@ -1,4 +1,4 @@
-use crate::let_node_ref_mut;
+// use crate::let_node_ref_mut;
 
 /// various tools for the binary tree
 pub mod utils;
@@ -239,7 +239,8 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             self.height = 0;
         } else {
-            let_node_ref_mut!(self => _value, left, right);
+            let (_,left,right) = self.node_mut().expect("tree should not be empty");
+            // let_node_ref_mut!(self => _value, left, right);
             let mut height_left = left.height();
             let mut height_right = right.height();
             let mut changed_left = false;

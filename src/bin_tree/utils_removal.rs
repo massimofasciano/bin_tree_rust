@@ -1,4 +1,4 @@
-use crate::{BinTree, let_node_ref_mut};
+use crate::BinTree;
 
 impl<Item> BinTree<Item> {
 
@@ -8,7 +8,8 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             None
         } else {
-            let_node_ref_mut!(self => value, left, right);
+            let (value,left,right) = self.node_mut().expect("tree should not be empty");
+            // let_node_ref_mut!(self => value, left, right);
             if *target_value == *value {
                 self.pop()
             } else {
@@ -38,7 +39,8 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             None
         } else {
-            let_node_ref_mut!(self => value, left, right);
+            let (value,left,right) = self.node_mut().expect("tree should not be empty");
+            // let_node_ref_mut!(self => value, left, right);
             let result = match cmp(target_key, to_key(value)) {
                 Some(std::cmp::Ordering::Less) => left.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
                 Some(std::cmp::Ordering::Greater) => right.remove_sorted_to_key_cmp(target_key,to_key,cmp,rebalance),
@@ -153,7 +155,8 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             None
         } else {
-            let_node_ref_mut!(self => _value, left, right);
+            let (_,left,right) = self.node_mut().expect("tree should not be empty");
+            // let_node_ref_mut!(self => _value, left, right);
             if left.is_empty() && right.is_empty() {
                 std::mem::take(self).into_value()
             } else if left.is_empty() {
@@ -169,7 +172,8 @@ impl<Item> BinTree<Item> {
         if self.is_empty() {
             None
         } else {
-            let_node_ref_mut!(self => _value, left, right);
+            let (_,left,right) = self.node_mut().expect("tree should not be empty");
+            // let_node_ref_mut!(self => _value, left, right);
             if left.is_empty() && right.is_empty() {
                 std::mem::take(self).into_value()
             } else if right.is_empty() {
