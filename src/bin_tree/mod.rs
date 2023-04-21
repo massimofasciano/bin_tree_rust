@@ -29,16 +29,16 @@ pub use self::formatted::*;
 /// a general purpose binary tree
 #[derive(Debug,Clone,PartialEq)]
 pub struct BinTree<Item> {
-    pub root: Option<Box<BinTreeNode<Item>>>,
-    pub height: isize, // this field is only updated when representing balanced trees
+    root: Option<Box<BinTreeNode<Item>>>,
+    height: isize, // this field is only updated when representing balanced trees
 }
 
 /// a general purpose binary tree node
 #[derive(Debug,Clone,PartialEq)]
 pub struct BinTreeNode<Item> {
-    pub value : Item,
-    pub left : BinTree<Item>,
-    pub right : BinTree<Item>,
+    value : Item,
+    left : BinTree<Item>,
+    right : BinTree<Item>,
 }
 
 impl<Item> BinTree<Item> {
@@ -113,6 +113,16 @@ impl<Item> BinTree<Item> {
             None
         } else {
             match self.root.as_deref().expect("not empty") {
+                BinTreeNode { value, left, right } => Some((value,left,right)),
+            }
+        }
+    }
+    /// splits a node into value, left and right (by ref mut)
+    pub fn node_mut(&mut self) -> Option<(&mut Item, &mut BinTree<Item>, &mut BinTree<Item>)> {
+        if self.is_empty() {
+            None
+        } else {
+            match self.root.as_deref_mut().expect("not empty") {
                 BinTreeNode { value, left, right } => Some((value,left,right)),
             }
         }
