@@ -6,14 +6,14 @@ I used the following data structures to represent the binary tree:
 
 ```rust
 pub struct BinTree<Item> {
-    pub root: Option<Box<BinTreeNode<Item>>>,
-    pub height: isize, // this field is only updated when representing balanced trees
+    root: Option<Box<BinTreeNode<Item>>>,
+    height: isize, // this field is only updated when representing balanced trees
 }
 
 pub struct BinTreeNode<Item> {
-    pub value : Item,
-    pub left : BinTree<Item>,
-    pub right : BinTree<Item>,
+    value : Item,
+    left : BinTree<Item>,
+    right : BinTree<Item>,
 }
 ```
 
@@ -23,7 +23,7 @@ The Box is necessary because the size of the tree is not known in advance and re
 A leaf is a node with 2 empty children.
 The "height" field is used to keep the tree balanced when needed. Balancing is optional.
 
-Where possible, access methods and special destructuring macros hide the internal implementation of the tree from the utility methods. I relied on the macros when separate mutable references to the left and right subtrees were needed (this is impossible when passing self to an access method that returns a ref mut).
+Access methods hide the internal implementation of the tree from the utility methods.
 
 The tree is designed to be balanced but methods that work on unbalanced trees are provided. It is preferable to wrap the BinTree
 inside a custom type when wanting to preserve order and balancing because direct mutable access can break order and balance.
@@ -166,7 +166,7 @@ impl<'a,T> Iterator for BinTreeIterMut<'a,T> {
                 if tree.is_empty() {
                     self.next()
                 } else {
-                    let_node_ref_mut!(tree => value, left, right);
+                    let (value,left,right) = tree.node_mut().expect("tree should not be empty");
                     match self.traversal {
                         DepthFirst(InOrder) => {
                             self.data.push_back(Tree(right));
